@@ -10,201 +10,61 @@
   const REWARD_PUBLIC_KEY =
     "sb_publishable_l75mr1kAzXwX6aPUEvruEA_GfmLKIE-";
 
-  /*
-    ✅ ЗДЕСЬ ЗАПОЛНЯТЬ ВОПРОСЫ И ОТВЕТЫ
-
-    Пример:
-
-    "50.7": {
-      question: "Сколько будет 2 + 2?",
-      answers: ["4", "четыре"]
-    }
-
-    "50.7" означает:
-    - строка №7;
-    - номинал 50;
-    - картинка 50.7.png.
-
-    В answers можно перечислить несколько вариантов.
-    Первый вариант показывается после ошибки.
-
-    Эмодзи в сам ответ добавлять НЕ нужно.
-
-    Для переноса строки в вопросе используйте \n.
-  */
-
-  const QUESTION_CONTENT = {
-    // Строка №1
-    "50.1": {
-      question: "Впишите вопрос №1 на 50 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "100.1": {
-      question: "Впишите вопрос №1 на 100 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "150.1": {
-      question: "Впишите вопрос №1 на 150 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "200.1": {
-      question: "Впишите вопрос №1 на 200 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "250.1": {
-      question: "Впишите вопрос №1 на 250 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-
-    // Строка №2
-    "50.2": {
-      question: "Впишите вопрос №2 на 50 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "100.2": {
-      question: "Впишите вопрос №2 на 100 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "150.2": {
-      question: "Впишите вопрос №2 на 150 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "200.2": {
-      question: "Впишите вопрос №2 на 200 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "250.2": {
-      question: "Впишите вопрос №2 на 250 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-
-    // Строка №3
-    "50.3": {
-      question: "Впишите вопрос №3 на 50 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "100.3": {
-      question: "Впишите вопрос №3 на 100 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "150.3": {
-      question: "Впишите вопрос №3 на 150 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "200.3": {
-      question: "Впишите вопрос №3 на 200 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "250.3": {
-      question: "Впишите вопрос №3 на 250 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-
-    // Строка №4
-    "50.4": {
-      question: "Впишите вопрос №4 на 50 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "100.4": {
-      question: "Впишите вопрос №4 на 100 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "150.4": {
-      question: "Впишите вопрос №4 на 150 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "200.4": {
-      question: "Впишите вопрос №4 на 200 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "250.4": {
-      question: "Впишите вопрос №4 на 250 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-
-    // Строка №7
-    "50.7": {
-      question: "Впишите вопрос №7 на 50 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "100.7": {
-      question: "Впишите вопрос №7 на 100 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "150.7": {
-      question: "Впишите вопрос №7 на 150 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "200.7": {
-      question: "Впишите вопрос №7 на 200 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "250.7": {
-      question: "Впишите вопрос №7 на 250 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-
-    // Строка №9
-    "50.9": {
-      question: "Впишите вопрос №9 на 50 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "100.9": {
-      question: "Впишите вопрос №9 на 100 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "150.9": {
-      question: "Впишите вопрос №9 на 150 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "200.9": {
-      question: "Впишите вопрос №9 на 200 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "250.9": {
-      question: "Впишите вопрос №9 на 250 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    }
-  };
+  const CONTENT = window.BALLOMANIA_CONTENT || {};
 
   const $ = id => document.getElementById(id);
 
   const questions = [];
   const cells = new Map();
-  const usedQuestions = new Set();
+  const used = new Set();
 
   let score = 0;
-  let currentQuestion = null;
-  let finished = false;
-  let finishing = false;
+  let current = null;
+  let imageReady = false;
 
-  // После подтверждения завершения счёт фиксируется.
-  // При ошибке сети можно повторить получение того же кода.
   let sealed = false;
-  let resultRequestId = null;
+  let finishing = false;
+  let finished = false;
+
+  let requestId = null;
   let issuedCode = null;
+  let imageVersion = 0;
 
   for (const row of ROW_NUMBERS) {
     for (const value of VALUES) {
       const id = value + "." + row;
+      const item = CONTENT[id];
 
-      const content = QUESTION_CONTENT[id] || {
-        question: "Этот вопрос пока не заполнен.",
-        answers: []
-      };
+      // Поддерживаются и answers: [...], и прежнее answer: "...".
+      let rawAnswers = [];
+
+      if (Array.isArray(item)) {
+        rawAnswers = item;
+      } else if (typeof item === "string") {
+        rawAnswers = [item];
+      } else if (Array.isArray(item?.answers)) {
+        rawAnswers = item.answers;
+      } else if (item?.answer !== undefined) {
+        rawAnswers = [item.answer];
+      }
+
+      const answers = rawAnswers
+        .map(answer =>
+          String(answer).replace(/✅/g, "").trim()
+        )
+        .filter(Boolean);
 
       questions.push({
         id,
         row,
         value,
         image: "./" + id + ".png",
-        question: content.question,
-        answers: content.answers
+        answers
       });
     }
   }
 
-  function normalizeAnswer(value) {
+  function normalize(value) {
     return String(value ?? "")
       .normalize("NFKC")
       .toLocaleLowerCase("ru-RU")
@@ -213,23 +73,11 @@
       .trim();
   }
 
-  function getAnswers(question) {
-    if (!Array.isArray(question.answers)) {
-      return [];
-    }
-
-    return question.answers
-      .map(value => String(value).trim())
-      .filter(Boolean);
-  }
-
-  function isConfigured(question) {
-    const answers = getAnswers(question);
-
+  function configured(question) {
     return (
-      answers.length > 0 &&
-      !answers.some(answer =>
-        normalizeAnswer(answer).includes("впишите ответ")
+      question.answers.length > 0 &&
+      !question.answers.some(answer =>
+        normalize(answer).includes("впишите ответ")
       )
     );
   }
@@ -238,76 +86,65 @@
     $("score").textContent = String(score);
   }
 
-  function animateScoreChange(delta) {
+  function animateScore(delta) {
     const element = document.createElement("span");
 
     element.className =
       "score-change " +
-      (delta > 0 ? "is-positive" : "is-negative");
+      (delta > 0 ? "positive" : "negative");
 
-    element.textContent =
-      delta > 0
-        ? "+" + delta
-        : "−" + Math.abs(delta);
+    element.textContent = delta > 0
+      ? "+" + delta
+      : "−" + Math.abs(delta);
 
     element.setAttribute("aria-hidden", "true");
 
     $("scoreWrap").append(element);
 
-    window.setTimeout(() => {
-      element.remove();
-    }, 1200);
+    setTimeout(() => element.remove(), 1200);
+  }
+
+  function selectCell(id) {
+    for (const [cellId, button] of cells) {
+      const selected = cellId === id;
+
+      button.classList.toggle("selected", selected);
+      button.setAttribute(
+        "aria-pressed",
+        String(selected)
+      );
+    }
   }
 
   function renderBoard() {
     $("rowLabels").replaceChildren();
     $("board").replaceChildren();
 
-    cells.clear();
-
-    ROW_NUMBERS.forEach(row => {
+    for (const row of ROW_NUMBERS) {
       const label = document.createElement("div");
 
       label.className = "row-label";
       label.textContent = "№" + row;
 
       $("rowLabels").append(label);
-    });
+    }
 
-    questions.forEach(question => {
+    for (const question of questions) {
       const button = document.createElement("button");
 
       button.type = "button";
       button.className = "cell";
 
+      // В таблице только число, не картинка.
+      button.textContent = String(question.value);
+
       button.setAttribute(
         "aria-label",
         "№" + question.row +
-        ", вопрос на " +
-        question.value +
-        " очков"
+        ", " + question.value + " очков"
       );
 
       button.setAttribute("aria-pressed", "false");
-
-      const image = document.createElement("img");
-      image.alt = "";
-      image.draggable = false;
-
-      const fallback = document.createElement("span");
-
-      fallback.className = "cell-fallback";
-      fallback.textContent = String(question.value);
-      fallback.hidden = true;
-
-      image.addEventListener("error", () => {
-        image.hidden = true;
-        fallback.hidden = false;
-      });
-
-      image.src = question.image;
-
-      button.append(image, fallback);
 
       button.addEventListener("click", () => {
         openQuestion(question);
@@ -315,46 +152,45 @@
 
       cells.set(question.id, button);
       $("board").append(button);
-    });
-  }
-
-  function setSelectedCell(id) {
-    for (const [cellId, button] of cells) {
-      const selected = cellId === id;
-
-      button.classList.toggle("is-selected", selected);
-      button.setAttribute("aria-pressed", String(selected));
     }
   }
 
   function openQuestion(question) {
     if (
-      finished ||
-      finishing ||
       sealed ||
-      usedQuestions.has(question.id)
+      finishing ||
+      finished ||
+      used.has(question.id)
     ) {
       return;
     }
 
-    currentQuestion = question;
+    current = question;
+    imageReady = false;
 
-    setSelectedCell(question.id);
+    const version = ++imageVersion;
 
-    $("questionText").hidden = false;
-    $("questionText").classList.remove("is-placeholder");
-    $("questionText").textContent = question.question;
+    selectCell(question.id);
 
     $("finishResult").hidden = true;
+
+    const placeholder = $("questionPlaceholder");
+
+    placeholder.hidden = false;
+    placeholder.textContent = "Загружаем вопрос…";
+
+    const image = $("questionImage");
+
+    image.hidden = true;
 
     const input = $("answerInput");
 
     input.value = "";
     input.placeholder = "Ответ";
-    input.disabled = false;
     input.readOnly = false;
+    input.disabled = true;
 
-    input.classList.remove("is-correct", "is-wrong");
+    input.classList.remove("correct", "wrong");
     input.setAttribute("aria-label", "Введите ответ");
 
     $("liveMessage").textContent = "";
@@ -362,43 +198,89 @@
     $("answerHint").textContent =
       "Введите ответ и нажмите Enter.";
 
-    if (!isConfigured(question)) {
+    // Загружаем отдельно, чтобы быстрые переключения
+    // ячеек не показывали предыдущую картинку.
+    const loader = new Image();
+
+    loader.onload = () => {
+      if (
+        version !== imageVersion ||
+        sealed ||
+        finished
+      ) {
+        return;
+      }
+
+      image.src = question.image;
+
+      image.alt =
+        "Вопрос №" + question.row +
+        " на " + question.value + " очков";
+
+      image.hidden = false;
+      placeholder.hidden = true;
+      imageReady = true;
+
+      if (!configured(question)) {
+        input.placeholder = "Ответ ещё не настроен";
+
+        $("liveMessage").textContent =
+          "Добавьте правильный ответ для " +
+          question.id + " в index.html.";
+
+        return;
+      }
+
+      input.disabled = false;
+      input.focus();
+    };
+
+    loader.onerror = () => {
+      if (
+        version !== imageVersion ||
+        sealed ||
+        finished
+      ) {
+        return;
+      }
+
+      imageReady = false;
+      image.hidden = true;
+
+      placeholder.hidden = false;
+      placeholder.textContent =
+        "Не найдена картинка " +
+        question.id +
+        ".png. Проверьте имя файла в репозитории.";
+
       input.disabled = true;
-      input.placeholder = "Вопрос ещё не настроен";
 
       $("liveMessage").textContent =
-        "Добавьте правильный ответ в QUESTION_CONTENT " +
-        "для ячейки " + question.id + ".";
+        "Без картинки ответ недоступен. Очки не списаны.";
+    };
 
-      return;
-    }
-
-    input.focus();
+    loader.src = question.image;
   }
 
   function submitAnswer(event) {
     event.preventDefault();
 
     if (
-      finished ||
-      finishing ||
       sealed ||
-      !currentQuestion ||
-      usedQuestions.has(currentQuestion.id)
+      finishing ||
+      finished ||
+      !current ||
+      !imageReady ||
+      used.has(current.id) ||
+      !configured(current)
     ) {
       return;
     }
 
-    const question = currentQuestion;
     const input = $("answerInput");
+    const answer = normalize(input.value);
 
-    if (!isConfigured(question)) {
-      return;
-    }
-
-    const userAnswer = normalizeAnswer(input.value);
-
-    if (!userAnswer) {
+    if (!answer) {
       $("liveMessage").textContent =
         "Сначала введите ответ.";
 
@@ -406,14 +288,14 @@
       return;
     }
 
-    const answers = getAnswers(question);
+    const question = current;
 
-    const correct = answers.some(answer =>
-      normalizeAnswer(answer) === userAnswer
+    const correct = question.answers.some(
+      option => normalize(option) === answer
     );
 
-    usedQuestions.add(question.id);
-    currentQuestion = null;
+    used.add(question.id);
+    current = null;
 
     const delta = correct
       ? question.value
@@ -422,28 +304,26 @@
     score += delta;
 
     updateScore();
-    animateScoreChange(delta);
+    animateScore(delta);
 
     const cell = cells.get(question.id);
 
-    if (cell) {
-      cell.disabled = true;
-
-      cell.classList.add(
-        "is-used",
-        correct ? "is-correct" : "is-wrong"
-      );
-    }
+    cell.disabled = true;
+    cell.classList.add(
+      "used",
+      correct ? "correct" : "wrong"
+    );
 
     input.readOnly = true;
 
     input.classList.add(
-      correct ? "is-correct" : "is-wrong"
+      correct ? "correct" : "wrong"
     );
 
     input.value = correct
       ? "Верно!"
-      : "Неверно. Правильный ответ: " + answers[0];
+      : "Неверно. Правильный ответ: " +
+        question.answers[0];
 
     input.setAttribute("aria-label", input.value);
     input.setSelectionRange(0, 0);
@@ -454,16 +334,16 @@
       : "Списано " + question.value + " очков.";
 
     $("answerHint").textContent =
-      usedQuestions.size === questions.length
+      used.size === questions.length
         ? "Все вопросы пройдены. Нажмите «Завершить»."
         : "Выберите следующую ячейку.";
 
-    const nextQuestion = questions.find(item =>
-      !usedQuestions.has(item.id)
+    const next = questions.find(
+      item => !used.has(item.id)
     );
 
-    if (nextQuestion) {
-      cells.get(nextQuestion.id)?.focus({
+    if (next) {
+      cells.get(next.id).focus({
         preventScroll: true
       });
     } else {
@@ -479,6 +359,7 @@
     }
 
     const bytes = new Uint8Array(16);
+
     window.crypto.getRandomValues(bytes);
 
     bytes[6] = (bytes[6] & 15) | 64;
@@ -489,25 +370,26 @@
       byte => byte.toString(16).padStart(2, "0")
     ).join("");
 
-    return (
-      hex.slice(0, 8) + "-" +
-      hex.slice(8, 12) + "-" +
-      hex.slice(12, 16) + "-" +
-      hex.slice(16, 20) + "-" +
+    return [
+      hex.slice(0, 8),
+      hex.slice(8, 12),
+      hex.slice(12, 16),
+      hex.slice(16, 20),
       hex.slice(20)
-    );
+    ].join("-");
   }
 
-  async function requestRewardCode() {
-    if (!resultRequestId) {
-      resultRequestId = createRequestId();
+  async function requestCode() {
+    if (!requestId) {
+      requestId = createRequestId();
     }
 
     const controller = new AbortController();
 
-    const timeout = window.setTimeout(() => {
-      controller.abort();
-    }, 15000);
+    const timeout = setTimeout(
+      () => controller.abort(),
+      15000
+    );
 
     try {
       const response = await fetch(REWARD_API_URL, {
@@ -520,18 +402,18 @@
 
         body: JSON.stringify({
           p_points: score,
-          p_request_id: resultRequestId
+          p_request_id: requestId
         }),
 
         signal: controller.signal
       });
 
-      const responseText = await response.text();
+      const text = await response.text();
 
       let result;
 
       try {
-        result = JSON.parse(responseText);
+        result = JSON.parse(text);
       } catch {
         throw new Error(
           "Сервер вернул неожиданный ответ."
@@ -541,7 +423,7 @@
       if (!response.ok) {
         throw new Error(
           result?.message ||
-          "Не удалось зарегистрировать результат."
+          "Не удалось сохранить результат."
         );
       }
 
@@ -554,54 +436,48 @@
       return result.code;
 
     } finally {
-      window.clearTimeout(timeout);
+      clearTimeout(timeout);
     }
   }
 
-  function showFinishedResult(code) {
+  function showResult(code) {
     finished = true;
-    currentQuestion = null;
     issuedCode = code;
+    current = null;
 
-    setSelectedCell(null);
+    selectCell(null);
 
-    $("questionText").hidden = true;
+    $("questionImage").hidden = true;
+    $("questionPlaceholder").hidden = true;
     $("finishResult").hidden = false;
 
     $("finalScore").textContent =
       "Ваш итоговый счёт: " + score;
 
+    $("resultCode").textContent = code || "";
     $("resultCode").hidden = !code;
     $("copyCode").hidden = !code;
-    $("resultCode").textContent = code || "";
 
     if (code) {
       $("codeDescription").textContent =
         "Введите этот код в панели стикеров " +
-        "«Mario Party». К вашему общему счёту " +
-        "прибавится " + score + " очков.";
+        "«Mario Party» для покупки стикеров. " +
+        "К общему счёту прибавится " +
+        score + " очков.";
 
       $("codeWarning").textContent =
         "Код можно использовать только один раз. " +
         "Сохраните его перед закрытием страницы.";
-
-      $("answerHint").textContent =
-        "Сохраните код результата.";
 
       $("liveMessage").textContent =
         "Результат сохранён. Код готов.";
 
     } else {
       $("codeDescription").textContent =
-        "Для получения кода нужно закончить " +
-        "игру с положительным счётом.";
+        "Для получения кода нужен положительный счёт.";
 
       $("codeWarning").textContent =
-        "Очки в Mario Party не начислены " +
-        "и не списаны.";
-
-      $("answerHint").textContent =
-        "Игра завершена.";
+        "Счёт Mario Party не изменился.";
 
       $("liveMessage").textContent =
         "Игра завершена без выдачи кода.";
@@ -614,8 +490,12 @@
     input.disabled = true;
     input.readOnly = true;
 
-    input.classList.remove("is-correct", "is-wrong");
+    input.classList.remove("correct", "wrong");
     input.setAttribute("aria-label", "Игра завершена");
+
+    $("answerHint").textContent = code
+      ? "Сохраните код результата."
+      : "Игра завершена.";
 
     $("finishButton").textContent = "Завершено";
     $("finishButton").disabled = true;
@@ -627,16 +507,17 @@
     }
 
     if (!sealed) {
-      const approved = window.confirm(
-        "Завершить игру? После этого отвечать " +
-        "на вопросы будет нельзя."
+      const confirmed = window.confirm(
+        "Завершить игру? После этого " +
+        "отвечать на вопросы будет нельзя."
       );
 
-      if (!approved) {
-        return;
-      }
+      if (!confirmed) return;
 
       sealed = true;
+
+      // Отменяем обработку ещё загружаемой картинки.
+      imageVersion++;
     }
 
     finishing = true;
@@ -656,10 +537,10 @@
 
     try {
       const code = score > 0
-        ? await requestRewardCode()
+        ? await requestCode()
         : null;
 
-      showFinishedResult(code);
+      showResult(code);
 
     } catch (error) {
       console.error(error);
@@ -670,12 +551,11 @@
 
       $("liveMessage").textContent =
         message +
-        " Нажмите «Повторить» для получения кода. " +
+        " Нажмите «Повторить». " +
         "Не обновляйте страницу.";
 
       $("answerHint").textContent =
-        "Счёт зафиксирован: " + score +
-        ". Дождитесь получения кода.";
+        "Счёт зафиксирован: " + score + ".";
 
       $("finishButton").disabled = false;
       $("finishButton").textContent = "Повторить";
@@ -686,16 +566,14 @@
   }
 
   async function copyCode() {
-    if (!issuedCode) {
-      return;
-    }
+    if (!issuedCode) return;
 
     try {
       await navigator.clipboard.writeText(issuedCode);
 
       $("copyCode").textContent = "Скопировано";
 
-      window.setTimeout(() => {
+      setTimeout(() => {
         $("copyCode").textContent = "Скопировать код";
       }, 1800);
 
@@ -704,6 +582,7 @@
       const range = document.createRange();
 
       range.selectNodeContents($("resultCode"));
+
       selection.removeAllRanges();
       selection.addRange(range);
 
@@ -727,9 +606,8 @@
     copyCode
   );
 
-  // Предупреждение о потере незавершённой партии.
   window.addEventListener("beforeunload", event => {
-    if (!finished && (usedQuestions.size > 0 || sealed)) {
+    if (!finished && (used.size > 0 || sealed)) {
       event.preventDefault();
       event.returnValue = "";
     }

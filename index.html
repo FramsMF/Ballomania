@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Балломания</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  :root {
+    --background: #03032f;
+    --yellow: #ffff00;
+    --cell: #345995;
+    --cell-hover: #416bad;
+    --selected: #459ff5;
+    --correct: #66ee94;
+    --wrong: #ff7777;
+    --ink: #171717;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+
+    background: var(--background);
+    color: #fff;
+
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 4px;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  .game {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: 90px auto 1fr;
+    grid-template-areas:
+      ". score"
+      "board question"
+      ". finish";
+
+    column-gap: 38px;
+    row-gap: 30px;
+
+    width: min(1180px, 100%);
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 20px 40px 20px 16px;
+  }
+
+  /* Счёт */
+
+  .score-area {
+    grid-area: score;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+
+    min-width: 0;
+  }
+
+  .score-wrap {
+    position: relative;
+
+    width: 76%;
+    min-width: 200px;
+  }
+
+  .score-box {
+    min-height: 70px;
+    padding: 12px 20px;
+
+    border: 4px solid var(--yellow);
+
+    color: var(--yellow);
+    font-size: 34px;
+    line-height: 1.15;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+
+    overflow-wrap: anywhere;
+  }
+
+  .score-change {
+    position: absolute;
+    top: 18px;
+    right: calc(100% + 14px);
+
+    width: max-content;
+
+    font-size: 28px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+
+    pointer-events: none;
+    animation: score-float 1100ms ease-out forwards;
+  }
+
+  .score-change.is-positive {
+    color: var(--correct);
+  }
+
+  .score-change.is-negative {
+    color: var(--wrong);
+  }
+
+  @keyframes score-float {
+    0% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    18% {
+      opacity: 1;
+    }
+
+    70% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translateY(-22px);
+    }
+  }
+
+  /* Поле вопросов */
+
+  .board-area {
+    grid-area: board;
+
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 8px;
+
+    align-self: start;
+    min-width: 0;
+  }
+
+  .row-labels {
+    display: grid;
+    grid-template-rows: repeat(5, 1fr);
+
+    padding: 5px 0;
+  }
+
+  .row-label {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-rows: repeat(5, 1fr);
+
+    aspect-ratio: 1 / 1;
+
+    border: 5px solid var(--yellow);
+    background: var(--cell);
+  }
+
+  .cell {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+
+    overflow: hidden;
+
+    border: 1px solid #1c355b;
+
+    background: var(--cell);
+    color: #fff;
+
+    cursor: pointer;
+
+    transition:
+      background 150ms ease,
+      opacity 150ms ease;
+  }
+
+  .cell:hover:not(:disabled) {
+    background: var(--cell-hover);
+  }
+
+  .cell.is-selected {
+    background: var(--selected);
+    box-shadow: inset 0 0 0 3px var(--selected);
+  }
+
+  .cell img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+    pointer-events: none;
+  }
+
+  .cell.is-selected img {
+    opacity: 0.65;
+  }
+
+  .cell-fallback {
+    font-size: clamp(14px, 2vw, 20px);
+    font-weight: 800;
+  }
+
+  .cell.is-used {
+    opacity: 0.4;
+  }
+
+  .cell.is-used::after {
+    position: absolute;
+    right: 4px;
+    bottom: 1px;
+
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  .cell.is-correct::after {
+    content: "+";
+    color: var(--correct);
+  }
+
+  .cell.is-wrong::after {
+    content: "−";
+    color: var(--wrong);
+  }
+
+  .cell:disabled {
+    cursor: default;
+  }
+
+  /* Вопрос и поле ответа */
+
+  .question-area {
+    grid-area: question;
+
+    align-self: start;
+    min-width: 0;
+    padding-top: 36px;
+  }
+
+  .question-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 250px;
+    padding: 24px 16px;
+
+    border: 4px solid var(--yellow);
+
+    background: #fff;
+    color: var(--ink);
+  }
+
+  .question-text {
+    width: 100%;
+    margin: 0;
+
+    font-size: 16px;
+    line-height: 1.45;
+
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .question-text.is-placeholder {
+    color: #777;
+    text-align: center;
+  }
+
+  .answer-form {
+    margin-top: 52px;
+  }
+
+  .answer-input {
+    display: block;
+
+    width: 100%;
+    min-height: 50px;
+    padding: 10px 12px;
+
+    border: 4px solid var(--yellow);
+    border-radius: 0;
+
+    outline: none;
+
+    background: #fff;
+    color: var(--ink);
+
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .answer-input::placeholder {
+    color: #777;
+    opacity: 1;
+  }
+
+  .answer-input:focus {
+    box-shadow: 0 0 0 2px #fff;
+  }
+
+  .answer-input.is-correct {
+    color: #177b36;
+    background: #f1fff4;
+  }
+
+  .answer-input.is-wrong {
+    color: #a92222;
+    background: #fff4f4;
+  }
+
+  .answer-input:disabled {
+    opacity: 1;
+    -webkit-text-fill-color: currentColor;
+  }
+
+  .answer-hint {
+    min-height: 18px;
+    margin: 10px 0 0;
+
+    color: #c3c3db;
+    font-size: 12px;
+  }
+
+  .live-message {
+    min-height: 18px;
+    margin: 8px 0 0;
+
+    color: var(--yellow);
+    font-size: 13px;
+  }
+
+  /* Завершение */
+
+  .finish-area {
+    grid-area: finish;
+
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+
+    min-height: 110px;
+  }
+
+  .finish-button {
+    width: 220px;
+    min-height: 62px;
+    padding: 12px 18px;
+
+    border: 5px solid var(--yellow);
+
+    background: transparent;
+    color: var(--yellow);
+
+    font-size: 18px;
+    font-weight: 800;
+
+    cursor: pointer;
+  }
+
+  .finish-button:hover:not(:disabled) {
+    background: rgba(255, 255, 0, 0.08);
+  }
+
+  .finish-button:disabled {
+    opacity: 0.65;
+    cursor: default;
+  }
+
+  /* Код вместо вопроса */
+
+  .finish-result {
+    width: 100%;
+    text-align: center;
+  }
+
+  .finish-title {
+    margin: 0 0 12px;
+    font-size: 21px;
+  }
+
+  .final-score {
+    margin: 0 0 16px;
+    font-size: 16px;
+  }
+
+  .result-code {
+    display: block;
+
+    margin: 0;
+    padding: 12px 8px;
+
+    border: 1px solid #d9d9d9;
+    background: #f5f5f5;
+
+    font-family: Consolas, monospace;
+    font-size: clamp(15px, 1.8vw, 22px);
+    font-weight: 800;
+
+    overflow-wrap: anywhere;
+    user-select: all;
+  }
+
+  .code-description {
+    margin: 16px 0 0;
+
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .code-warning {
+    margin: 10px 0 0;
+
+    color: #777;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  @media (min-width: 1400px) {
+    .game {
+      min-height: 760px;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .game {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto auto;
+      grid-template-areas:
+        "score"
+        "board"
+        "question"
+        "finish";
+
+      gap: 24px;
+
+      min-height: 100vh;
+      padding: 20px 16px 28px;
+    }
+
+    .score-wrap {
+      width: 60%;
+      min-width: 170px;
+    }
+
+    .score-box {
+      min-height: 60px;
+      font-size: 30px;
+    }
+
+    .board-area {
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 6px;
+    }
+
+    .cell-fallback {
+      font-size: clamp(14px, 4vw, 21px);
+    }
+
+    .question-area {
+      padding-top: 0;
+    }
+
+    .question-box {
+      min-height: 230px;
+    }
+
+    .answer-form {
+      margin-top: 22px;
+    }
+
+    .finish-area {
+      min-height: 60px;
+    }
+
+    .result-code {
+      font-size: 19px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cell {
+      transition: none;
+    }
+
+    .score-change {
+      animation: none;
+    }
+  }
+</style>
+</head>
+
+<body>
+<main class="game" aria-label="Балломания">
+
+  <section class="score-area" aria-label="Ваш счёт">
+    <div id="scoreWrap" class="score-wrap">
+      <div
+        id="score"
+        class="score-box"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        0
+      </div>
+    </div>
+  </section>
+
+  <section class="board-area" aria-label="Таблица вопросов">
+    <div id="rowLabels" class="row-labels"></div>
+    <div id="board" class="board"></div>
+  </section>
+
+  <section class="question-area" aria-label="Вопрос и ответ">
+
+    <div id="questionBox" class="question-box">
+
+      <p id="questionText" class="question-text is-placeholder">
+        Выберите ячейку на игровом поле
+      </p>
+
+      <div id="finishResult" class="finish-result" hidden>
+        <h1 class="finish-title">Игра завершена!</h1>
+
+        <p id="finalScore" class="final-score"></p>
+
+        <code id="resultCode" class="result-code"></code>
+
+        <p class="code-description">
+          Этот код можно ввести в «Mario Party»
+          для покупки стикеров.
+        </p>
+
+        <p class="code-warning">
+          Пока это код-заготовка. Перенос очков
+          в «Mario Party» ещё не подключён.
+        </p>
+      </div>
+
+    </div>
+
+    <form id="answerForm" class="answer-form">
+      <input
+        id="answerInput"
+        class="answer-input"
+        type="text"
+        placeholder="Ответ"
+        aria-label="Введите ответ"
+        aria-describedby="answerHint liveMessage"
+        autocomplete="off"
+        spellcheck="false"
+        enterkeyhint="send"
+        disabled
+      >
+
+      <p id="answerHint" class="answer-hint">
+        Введите ответ и нажмите Enter.
+      </p>
+
+      <p
+        id="liveMessage"
+        class="live-message"
+        role="status"
+        aria-live="polite"
+      ></p>
+    </form>
+
+  </section>
+
+  <div class="finish-area">
+    <button
+      id="finishButton"
+      class="finish-button"
+      type="button"
+    >
+      Завершить
+    </button>
+  </div>
+
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const VALUES = [50, 100, 150, 200, 250];
+
+  // Подписи строк на экране.
+  // Номера файлов остаются от 1 до 5.
+  const ROW_LABELS = ["№1", "№2", "№3", "№7", "№9"];
+
+  /*
+    ✅ ЗДЕСЬ ЗАПОЛНЯТЬ ВОПРОСЫ И ОТВЕТЫ
+
+    Ключ "50.1":
+      50 — номинал;
+      1 — порядковый номер строки;
+      картинка — 50.1.png.
+
+    question — текст вопроса.
+    answers — список допустимых правильных ответов.
+
+    Пример заполнения:
+    "50.1": {
+      question: "Сколько будет 2 + 2?",
+      answers: ["4", "четыре"]
+    }
+
+    Эмодзи в сам ответ добавлять НЕ нужно.
+
+    Можно указать несколько вариантов:
+    answers: ["ответ", "другой допустимый вариант"]
+
+    Первый вариант показывается игроку после ошибки.
+
+    Перенос строки в вопросе: \n
+  */
+
+  const QUESTION_CONTENT = {
+    // Первая строка — №1
+    "50.1": {
+      question: "Впишите вопрос первой строки на 50 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "100.1": {
+      question: "Впишите вопрос первой строки на 100 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "150.1": {
+      question: "Впишите вопрос первой строки на 150 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "200.1": {
+      question: "Впишите вопрос первой строки на 200 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "250.1": {
+      question: "Впишите вопрос первой строки на 250 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+
+    // Вторая строка — №2
+    "50.2": {
+      question: "Впишите вопрос второй строки на 50 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "100.2": {
+      question: "Впишите вопрос второй строки на 100 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "150.2": {
+      question: "Впишите вопрос второй строки на 150 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "200.2": {
+      question: "Впишите вопрос второй строки на 200 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "250.2": {
+      question: "Впишите вопрос второй строки на 250 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+
+    // Третья строка — №3
+    "50.3": {
+      question: "Впишите вопрос третьей строки на 50 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "100.3": {
+      question: "Впишите вопрос третьей строки на 100 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "150.3": {
+      question: "Впишите вопрос третьей строки на 150 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "200.3": {
+      question: "Впишите вопрос третьей строки на 200 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "250.3": {
+      question: "Впишите вопрос третьей строки на 250 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+
+    // Четвёртая строка — №7
+    "50.4": {
+      question: "Впишите вопрос четвёртой строки на 50 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "100.4": {
+      question: "Впишите вопрос четвёртой строки на 100 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "150.4": {
+      question: "Впишите вопрос четвёртой строки на 150 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "200.4": {
+      question: "Впишите вопрос четвёртой строки на 200 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "250.4": {
+      question: "Впишите вопрос четвёртой строки на 250 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+
+    // Пятая строка — №9
+    "50.5": {
+      question: "Впишите вопрос пятой строки на 50 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "100.5": {
+      question: "Впишите вопрос пятой строки на 100 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "150.5": {
+      question: "Впишите вопрос пятой строки на 150 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "200.5": {
+      question: "Впишите вопрос пятой строки на 200 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    },
+    "250.5": {
+      question: "Впишите вопрос пятой строки на 250 очков.",
+      answers: ["ВПИШИТЕ ОТВЕТ"]
+    }
+  };
+
+  const $ = id => document.getElementById(id);
+
+  const questions = [];
+  const cells = new Map();
+  const usedQuestions = new Set();
+
+  let score = 0;
+  let currentQuestion = null;
+  let finished = false;
+
+  // Формируем 25 вопросов и названия картинок.
+  for (let row = 1; row <= 5; row++) {
+    for (const value of VALUES) {
+      const id = value + "." + row;
+
+      const content = QUESTION_CONTENT[id] || {
+        question: "Этот вопрос пока не заполнен.",
+        answers: []
+      };
+
+      questions.push({
+        id,
+        row,
+        value,
+        image: "./" + id + ".png",
+        question: content.question,
+        answers: content.answers
+      });
+    }
+  }
+
+  function normalizeAnswer(value) {
+    return String(value ?? "")
+      .normalize("NFKC")
+      .toLocaleLowerCase("ru-RU")
+      .replace(/ё/g, "е")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function getAnswers(question) {
+    if (!Array.isArray(question.answers)) {
+      return [];
+    }
+
+    return question.answers
+      .map(value => String(value).trim())
+      .filter(Boolean);
+  }
+
+  function isConfigured(question) {
+    const answers = getAnswers(question);
+
+    return (
+      answers.length > 0 &&
+      !answers.some(answer =>
+        normalizeAnswer(answer).includes("впишите ответ")
+      )
+    );
+  }
+
+  function updateScore() {
+    $("score").textContent = String(score);
+  }
+
+  function animateScoreChange(delta) {
+    const element = document.createElement("span");
+
+    element.className =
+      "score-change " +
+      (delta > 0 ? "is-positive" : "is-negative");
+
+    element.textContent =
+      delta > 0
+        ? "+" + delta
+        : "−" + Math.abs(delta);
+
+    element.setAttribute("aria-hidden", "true");
+
+    $("scoreWrap").append(element);
+
+    window.setTimeout(() => {
+      element.remove();
+    }, 1200);
+  }
+
+  function renderBoard() {
+    const labelContainer = $("rowLabels");
+    const board = $("board");
+
+    labelContainer.replaceChildren();
+    board.replaceChildren();
+    cells.clear();
+
+    ROW_LABELS.forEach(label => {
+      const element = document.createElement("div");
+
+      element.className = "row-label";
+      element.textContent = label;
+
+      labelContainer.append(element);
+    });
+
+    questions.forEach(question => {
+      const button = document.createElement("button");
+
+      button.type = "button";
+      button.className = "cell";
+
+      button.setAttribute(
+        "aria-label",
+        ROW_LABELS[question.row - 1] +
+        ", вопрос на " +
+        question.value +
+        " очков"
+      );
+
+      button.setAttribute("aria-pressed", "false");
+
+      const image = document.createElement("img");
+
+      image.alt = "";
+      image.draggable = false;
+
+      const fallback = document.createElement("span");
+
+      fallback.className = "cell-fallback";
+      fallback.textContent = String(question.value);
+      fallback.hidden = true;
+
+      image.addEventListener("error", () => {
+        image.hidden = true;
+        fallback.hidden = false;
+      });
+
+      image.src = question.image;
+
+      button.append(image, fallback);
+
+      button.addEventListener("click", () => {
+        openQuestion(question);
+      });
+
+      cells.set(question.id, button);
+      board.append(button);
+    });
+  }
+
+  function setSelectedCell(id) {
+    for (const [cellId, button] of cells) {
+      const selected = cellId === id;
+
+      button.classList.toggle("is-selected", selected);
+
+      button.setAttribute(
+        "aria-pressed",
+        String(selected)
+      );
+    }
+  }
+
+  function openQuestion(question) {
+    if (finished || usedQuestions.has(question.id)) {
+      return;
+    }
+
+    currentQuestion = question;
+    setSelectedCell(question.id);
+
+    $("questionText").hidden = false;
+    $("questionText").classList.remove("is-placeholder");
+    $("questionText").textContent = question.question;
+
+    $("finishResult").hidden = true;
+
+    const input = $("answerInput");
+
+    input.classList.remove("is-correct", "is-wrong");
+    input.value = "";
+    input.placeholder = "Ответ";
+    input.readOnly = false;
+    input.disabled = false;
+    input.setAttribute("aria-label", "Введите ответ");
+
+    $("liveMessage").textContent = "";
+    $("answerHint").textContent =
+      "Введите ответ и нажмите Enter.";
+
+    if (!isConfigured(question)) {
+      input.disabled = true;
+      input.placeholder = "Вопрос ещё не настроен";
+
+      $("liveMessage").textContent =
+        "Добавьте правильный ответ в QUESTION_CONTENT " +
+        "для ячейки " + question.id +
+        ". Очки за неё пока не начисляются.";
+    } else {
+      input.focus();
+    }
+  }
+
+  function submitAnswer(event) {
+    event.preventDefault();
+
+    if (
+      finished ||
+      !currentQuestion ||
+      usedQuestions.has(currentQuestion.id)
+    ) {
+      return;
+    }
+
+    const question = currentQuestion;
+    const input = $("answerInput");
+
+    if (!isConfigured(question)) {
+      return;
+    }
+
+    const userAnswer = normalizeAnswer(input.value);
+
+    if (!userAnswer) {
+      $("liveMessage").textContent =
+        "Сначала введите ответ.";
+
+      input.focus();
+      return;
+    }
+
+    const answers = getAnswers(question);
+
+    const correct = answers.some(answer =>
+      normalizeAnswer(answer) === userAnswer
+    );
+
+    // Сразу блокируем повторную отправку.
+    usedQuestions.add(question.id);
+    currentQuestion = null;
+
+    const delta = correct
+      ? question.value
+      : -question.value;
+
+    score += delta;
+
+    updateScore();
+    animateScoreChange(delta);
+
+    const button = cells.get(question.id);
+
+    if (button) {
+      button.disabled = true;
+      button.classList.add(
+        "is-used",
+        correct ? "is-correct" : "is-wrong"
+      );
+    }
+
+    input.readOnly = true;
+    input.classList.add(
+      correct ? "is-correct" : "is-wrong"
+    );
+
+    if (correct) {
+      input.value = "Верно!";
+    } else {
+      input.value =
+        "Неверно. Правильный ответ: " + answers[0];
+    }
+
+    input.setAttribute("aria-label", input.value);
+
+    // Показываем начало сообщения даже при длинном ответе.
+    input.setSelectionRange(0, 0);
+    input.scrollLeft = 0;
+
+    const scoreMessage = correct
+      ? "Начислено " + question.value + " очков."
+      : "Списано " + question.value + " очков.";
+
+    $("liveMessage").textContent =
+      input.value + " " + scoreMessage;
+
+    $("answerHint").textContent =
+      usedQuestions.size === questions.length
+        ? "Все вопросы пройдены. Нажмите «Завершить»."
+        : "Выберите следующую ячейку.";
+
+    // Возвращаем фокус на поле вопросов.
+    const nextAvailable = questions.find(item =>
+      !usedQuestions.has(item.id)
+    );
+
+    if (nextAvailable) {
+      cells.get(nextAvailable.id)?.focus({
+        preventScroll: true
+      });
+    } else {
+      $("finishButton").focus({
+        preventScroll: true
+      });
+    }
+  }
+
+  function makeResultCode() {
+    // Только заготовка для будущего переноса очков.
+    // Не является защищённым или одноразовым кодом.
+    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const bytes = new Uint8Array(8);
+
+    window.crypto.getRandomValues(bytes);
+
+    const token = Array.from(
+      bytes,
+      byte => alphabet[byte % alphabet.length]
+    ).join("");
+
+    const scorePart = score < 0
+      ? "M" + Math.abs(score)
+      : String(score);
+
+    return (
+      "BALL-" +
+      token.slice(0, 4) +
+      "-" +
+      token.slice(4) +
+      "-" +
+      scorePart
+    );
+  }
+
+  function finishGame() {
+    if (finished) return;
+
+    const approved = window.confirm(
+      "Завершить игру? После этого отвечать " +
+      "на вопросы будет нельзя."
+    );
+
+    if (!approved) return;
+
+    finished = true;
+    currentQuestion = null;
+
+    for (const button of cells.values()) {
+      button.disabled = true;
+    }
+
+    setSelectedCell(null);
+
+    $("questionText").hidden = true;
+    $("finishResult").hidden = false;
+
+    $("finalScore").textContent =
+      "Ваш итоговый счёт: " + score;
+
+    $("resultCode").textContent = makeResultCode();
+
+    const input = $("answerInput");
+
+    input.value = "";
+    input.placeholder = "Игра завершена";
+    input.disabled = true;
+    input.readOnly = true;
+
+    input.classList.remove("is-correct", "is-wrong");
+    input.setAttribute("aria-label", "Игра завершена");
+
+    $("answerHint").textContent =
+      "Сохраните код результата.";
+
+    $("liveMessage").textContent =
+      "Игра завершена. Итоговый счёт: " + score + ".";
+
+    $("finishButton").textContent = "Завершено";
+    $("finishButton").disabled = true;
+  }
+
+  $("answerForm").addEventListener(
+    "submit",
+    submitAnswer
+  );
+
+  $("finishButton").addEventListener(
+    "click",
+    finishGame
+  );
+
+  renderBoard();
+  updateScore();
+})();
+</script>
+
+</body>
+</html>

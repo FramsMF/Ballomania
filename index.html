@@ -15,20 +15,17 @@
     --background: #03032f;
     --yellow: #ffff00;
     --cell: #345995;
-    --cell-hover: #416bad;
+    --hover: #416bad;
     --selected: #459ff5;
     --correct: #66ee94;
     --wrong: #ff7777;
-    --ink: #171717;
   }
 
   body {
     margin: 0;
     min-height: 100vh;
-
     background: var(--background);
-    color: #fff;
-
+    color: white;
     font-family: Arial, Helvetica, sans-serif;
   }
 
@@ -37,17 +34,13 @@
     font: inherit;
   }
 
-  button {
-    -webkit-tap-highlight-color: transparent;
+  [hidden] {
+    display: none !important;
   }
 
   button:focus-visible {
-    outline: 3px solid #fff;
-    outline-offset: 4px;
-  }
-
-  [hidden] {
-    display: none !important;
+    outline: 3px solid white;
+    outline-offset: 3px;
   }
 
   .game {
@@ -64,6 +57,7 @@
 
     width: min(1180px, 100%);
     min-height: 100vh;
+
     margin: 0 auto;
     padding: 20px 40px 20px 16px;
   }
@@ -72,17 +66,14 @@
 
   .score-area {
     grid-area: score;
-
     display: flex;
-    align-items: flex-start;
     justify-content: flex-end;
-
+    align-items: flex-start;
     min-width: 0;
   }
 
   .score-wrap {
     position: relative;
-
     width: 76%;
     min-width: 200px;
   }
@@ -90,38 +81,32 @@
   .score-box {
     min-height: 70px;
     padding: 12px 20px;
-
     border: 4px solid var(--yellow);
-
     color: var(--yellow);
     font-size: 34px;
-    line-height: 1.15;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
-
     overflow-wrap: anywhere;
   }
 
   .score-change {
     position: absolute;
-    top: 18px;
     right: calc(100% + 14px);
+    top: 18px;
 
     width: max-content;
-
     font-size: 28px;
     font-weight: 800;
-    font-variant-numeric: tabular-nums;
 
     pointer-events: none;
     animation: score-float 1100ms ease-out forwards;
   }
 
-  .score-change.is-positive {
+  .score-change.positive {
     color: var(--correct);
   }
 
-  .score-change.is-negative {
+  .score-change.negative {
     color: var(--wrong);
   }
 
@@ -131,10 +116,7 @@
       transform: translateY(8px);
     }
 
-    18% {
-      opacity: 1;
-    }
-
+    20%,
     70% {
       opacity: 1;
     }
@@ -145,7 +127,7 @@
     }
   }
 
-  /* Таблица вопросов */
+  /* Таблица */
 
   .board-area {
     grid-area: board;
@@ -161,15 +143,12 @@
   .row-labels {
     display: grid;
     grid-template-rows: repeat(6, 1fr);
-
     padding: 5px 0;
   }
 
   .row-label {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-
     font-size: 14px;
     font-weight: 700;
   }
@@ -196,67 +175,42 @@
     min-height: 0;
     padding: 0;
 
-    overflow: hidden;
-
     border: 1px solid #1c355b;
-
     background: var(--cell);
-    color: #fff;
+    color: white;
+
+    font-size: clamp(15px, 2vw, 21px);
+    font-weight: 800;
 
     cursor: pointer;
-
-    transition:
-      background 150ms ease,
-      opacity 150ms ease;
+    transition: background 150ms ease, opacity 150ms ease;
   }
 
   .cell:hover:not(:disabled) {
-    background: var(--cell-hover);
+    background: var(--hover);
   }
 
-  .cell.is-selected {
+  .cell.selected {
     background: var(--selected);
-    box-shadow: inset 0 0 0 3px var(--selected);
   }
 
-  .cell img {
-    display: block;
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: contain;
-    pointer-events: none;
-  }
-
-  .cell.is-selected img {
-    opacity: 0.65;
-  }
-
-  .cell-fallback {
-    font-size: clamp(14px, 2vw, 20px);
-    font-weight: 800;
-  }
-
-  .cell.is-used {
+  .cell.used {
     opacity: 0.4;
   }
 
-  .cell.is-used::after {
+  .cell.used::after {
     position: absolute;
-    right: 4px;
-    bottom: 1px;
-
+    bottom: 2px;
+    right: 5px;
     font-size: 18px;
-    font-weight: 800;
   }
 
-  .cell.is-correct::after {
+  .cell.correct::after {
     content: "+";
     color: var(--correct);
   }
 
-  .cell.is-wrong::after {
+  .cell.wrong::after {
     content: "−";
     color: var(--wrong);
   }
@@ -265,11 +219,10 @@
     cursor: default;
   }
 
-  /* Вопрос и ответ */
+  /* Картинка вопроса */
 
   .question-area {
     grid-area: question;
-
     align-self: start;
     min-width: 0;
     padding-top: 36px;
@@ -281,29 +234,32 @@
     justify-content: center;
 
     min-height: 250px;
-    padding: 24px 16px;
+    padding: 12px;
 
     border: 4px solid var(--yellow);
-
-    background: #fff;
-    color: var(--ink);
+    background: white;
+    color: #171717;
   }
 
-  .question-text {
+  .question-image {
+    display: block;
     width: 100%;
+    height: auto;
+    max-height: 540px;
+    object-fit: contain;
+  }
+
+  .question-placeholder {
     margin: 0;
-
-    font-size: 16px;
-    line-height: 1.45;
-
-    white-space: pre-wrap;
+    padding: 24px 8px;
+    color: #777;
+    text-align: center;
+    font-size: 15px;
+    line-height: 1.5;
     overflow-wrap: anywhere;
   }
 
-  .question-text.is-placeholder {
-    color: #777;
-    text-align: center;
-  }
+  /* Ответ */
 
   .answer-form {
     margin-top: 52px;
@@ -318,11 +274,10 @@
 
     border: 4px solid var(--yellow);
     border-radius: 0;
-
     outline: none;
 
-    background: #fff;
-    color: var(--ink);
+    background: white;
+    color: #171717;
 
     font-size: 17px;
     font-weight: 700;
@@ -334,17 +289,17 @@
   }
 
   .answer-input:focus {
-    box-shadow: 0 0 0 2px #fff;
+    box-shadow: 0 0 0 2px white;
   }
 
-  .answer-input.is-correct {
-    color: #177b36;
+  .answer-input.correct {
     background: #f1fff4;
+    color: #177b36;
   }
 
-  .answer-input.is-wrong {
-    color: #a92222;
+  .answer-input.wrong {
     background: #fff4f4;
+    color: #a92222;
   }
 
   .answer-input:disabled {
@@ -352,31 +307,30 @@
     -webkit-text-fill-color: currentColor;
   }
 
-  .answer-hint {
+  .hint {
     min-height: 18px;
     margin: 10px 0 0;
-
     color: #c3c3db;
     font-size: 12px;
+    line-height: 1.5;
   }
 
-  .live-message {
+  .message {
     min-height: 18px;
     margin: 8px 0 0;
-
     color: var(--yellow);
     font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
   }
 
-  /* Кнопка завершения */
+  /* Завершение */
 
   .finish-area {
     grid-area: finish;
-
     display: flex;
-    justify-content: flex-end;
     align-items: flex-end;
-
+    justify-content: flex-end;
     min-height: 90px;
   }
 
@@ -386,18 +340,16 @@
     padding: 12px 18px;
 
     border: 5px solid var(--yellow);
-
     background: transparent;
     color: var(--yellow);
 
     font-size: 18px;
     font-weight: 800;
-
     cursor: pointer;
   }
 
   .finish-button:hover:not(:disabled) {
-    background: rgba(255, 255, 0, 0.08);
+    background: #ffff0014;
   }
 
   .finish-button:disabled {
@@ -405,59 +357,54 @@
     cursor: default;
   }
 
-  /* Код вместо вопроса */
-
   .finish-result {
     width: 100%;
+    padding: 12px 0;
     text-align: center;
   }
 
-  .finish-title {
+  .finish-result h1 {
     margin: 0 0 12px;
-    font-size: 21px;
-  }
-
-  .final-score {
-    margin: 0 0 16px;
-    font-size: 16px;
+    font-size: 22px;
   }
 
   .result-code {
     display: block;
-
-    margin: 0;
     padding: 12px 8px;
-
-    border: 1px solid #d9d9d9;
+    border: 1px solid #ddd;
     background: #f5f5f5;
 
     font-family: Consolas, monospace;
-    font-size: clamp(15px, 1.8vw, 22px);
+    font-size: 17px;
     font-weight: 800;
 
     overflow-wrap: anywhere;
     user-select: all;
   }
 
-  .code-description {
-    margin: 16px 0 0;
+  .copy-button {
+    margin-top: 12px;
+    padding: 9px 14px;
+    border: 0;
+    border-radius: 7px;
+    background: var(--background);
+    color: white;
+    cursor: pointer;
+  }
 
+  .copy-button:focus-visible {
+    outline-color: #171717;
+  }
+
+  .code-description {
     font-size: 14px;
-    line-height: 1.4;
+    line-height: 1.5;
   }
 
   .code-warning {
-    margin: 10px 0 0;
-
     color: #777;
     font-size: 11px;
-    line-height: 1.4;
-  }
-
-  @media (min-width: 1400px) {
-    .game {
-      min-height: 800px;
-    }
+    line-height: 1.5;
   }
 
   @media (max-width: 760px) {
@@ -471,8 +418,6 @@
         "finish";
 
       gap: 24px;
-
-      min-height: 100vh;
       padding: 20px 16px 28px;
     }
 
@@ -491,7 +436,7 @@
       gap: 6px;
     }
 
-    .cell-fallback {
+    .cell {
       font-size: clamp(14px, 4vw, 21px);
     }
 
@@ -509,10 +454,6 @@
 
     .finish-area {
       min-height: 60px;
-    }
-
-    .result-code {
-      font-size: 19px;
     }
   }
 
@@ -538,9 +479,7 @@
         class="score-box"
         aria-live="polite"
         aria-atomic="true"
-      >
-        0
-      </div>
+      >0</div>
     </div>
   </section>
 
@@ -550,29 +489,37 @@
   </section>
 
   <section class="question-area" aria-label="Вопрос и ответ">
+    <div class="question-box">
 
-    <div id="questionBox" class="question-box">
-
-      <p id="questionText" class="question-text is-placeholder">
+      <p id="questionPlaceholder" class="question-placeholder">
         Выберите ячейку на игровом поле
       </p>
 
+      <img
+        id="questionImage"
+        class="question-image"
+        alt="Вопрос"
+        hidden
+      >
+
       <div id="finishResult" class="finish-result" hidden>
-        <h1 class="finish-title">Игра завершена!</h1>
+        <h1>Игра завершена!</h1>
 
-        <p id="finalScore" class="final-score"></p>
+        <p id="finalScore"></p>
 
-        <code id="resultCode" class="result-code"></code>
+        <code id="resultCode" class="result-code" hidden></code>
 
-        <p class="code-description">
-          Этот код можно ввести в «Mario Party»
-          для покупки стикеров.
-        </p>
+        <button
+          id="copyCode"
+          class="copy-button"
+          type="button"
+          hidden
+        >
+          Скопировать код
+        </button>
 
-        <p class="code-warning">
-          Пока это код-заготовка. Перенос очков
-          в «Mario Party» ещё не подключён.
-        </p>
+        <p id="codeDescription" class="code-description"></p>
+        <p id="codeWarning" class="code-warning"></p>
       </div>
 
     </div>
@@ -591,594 +538,85 @@
         disabled
       >
 
-      <p id="answerHint" class="answer-hint">
+      <p id="answerHint" class="hint">
         Введите ответ и нажмите Enter.
       </p>
 
       <p
         id="liveMessage"
-        class="live-message"
+        class="message"
         role="status"
         aria-live="polite"
       ></p>
     </form>
-
   </section>
 
   <div class="finish-area">
-    <button
-      id="finishButton"
-      class="finish-button"
-      type="button"
-    >
+    <button id="finishButton" class="finish-button" type="button">
       Завершить
     </button>
   </div>
 
 </main>
 
+<!--
+  ✅ ОТВЕТЫ НАХОДЯТСЯ ЗДЕСЬ.
+
+  Перенесите сюда свои уже заполненные ответы.
+
+  Пример:
+  "50.1": { answers: ["4", "четыре"] }
+
+  Пустой список [] означает, что ответ ещё не задан.
+
+  Если у вас уже есть целиком заполненный объект
+  QUESTION_CONTENT, можно вставить его содержимое сюда.
+  Поля question допустимо оставить — игра их не использует.
+-->
 <script>
-(() => {
-  "use strict";
-
-  const VALUES = [50, 100, 150, 200, 250];
-
-  // Номера строк совпадают с номерами в названиях файлов.
-  const ROW_NUMBERS = [1, 2, 3, 4, 7, 9];
-
-  /*
-    ✅ ЗДЕСЬ ЗАПОЛНЯТЬ ВОПРОСЫ И ОТВЕТЫ
-
-    Пример:
-
-    "50.7": {
-      question: "Текст вопроса №7 на 50 очков.",
-      answers: ["Правильный ответ", "Другой допустимый вариант"]
-    }
-
-    "50.7" означает:
-      номинал — 50;
-      строка — №7;
-      картинка — 50.7.png.
-
-    question — текст вопроса.
-    answers — список допустимых правильных ответов.
-
-    Первый ответ из списка показывается после ошибки.
-
-    Эмодзи в сам ответ добавлять НЕ нужно.
-    Перенос строки в вопросе: \n
-  */
-
-  const QUESTION_CONTENT = {
-    // Строка №1
-    "50.1": {
-      question: "Впишите вопрос №1 на 50 очков.",
-      answers: ["Долгопер"]
-    },
-    "100.1": {
-      question: "Впишите вопрос №1 на 100 очков.",
-      answers: ["тумбочка"]
-    },
-    "150.1": {
-      question: "Впишите вопрос №1 на 150 очков.",
-      answers: ["Шрек"]
-    },
-    "200.1": {
-      question: "Впишите вопрос №1 на 200 очков.",
-      answers: ["дядя"]
-    },
-    "250.1": {
-      question: "Впишите вопрос №1 на 250 очков.",
-      answers: ["84"]
-    },
-
-    // Строка №2
-    "50.2": {
-      question: "Впишите вопрос №2 на 50 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "100.2": {
-      question: "Впишите вопрос №2 на 100 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "150.2": {
-      question: "Впишите вопрос №2 на 150 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "200.2": {
-      question: "Впишите вопрос №2 на 200 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "250.2": {
-      question: "Впишите вопрос №2 на 250 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-
-    // Строка №3
-    "50.3": {
-      question: "Впишите вопрос №3 на 50 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "100.3": {
-      question: "Впишите вопрос №3 на 100 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "150.3": {
-      question: "Впишите вопрос №3 на 150 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "200.3": {
-      question: "Впишите вопрос №3 на 200 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "250.3": {
-      question: "Впишите вопрос №3 на 250 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-
-    // Строка №4
-    "50.4": {
-      question: "Впишите вопрос №4 на 50 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "100.4": {
-      question: "Впишите вопрос №4 на 100 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "150.4": {
-      question: "Впишите вопрос №4 на 150 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "200.4": {
-      question: "Впишите вопрос №4 на 200 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "250.4": {
-      question: "Впишите вопрос №4 на 250 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-
-    // Строка №7
-    "50.7": {
-      question: "Впишите вопрос №7 на 50 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "100.7": {
-      question: "Впишите вопрос №7 на 100 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "150.7": {
-      question: "Впишите вопрос №7 на 150 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "200.7": {
-      question: "Впишите вопрос №7 на 200 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "250.7": {
-      question: "Впишите вопрос №7 на 250 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-
-    // Строка №9
-    "50.9": {
-      question: "Впишите вопрос №9 на 50 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "100.9": {
-      question: "Впишите вопрос №9 на 100 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "150.9": {
-      question: "Впишите вопрос №9 на 150 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "200.9": {
-      question: "Впишите вопрос №9 на 200 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    },
-    "250.9": {
-      question: "Впишите вопрос №9 на 250 очков.",
-      answers: ["ВПИШИТЕ ОТВЕТ"]
-    }
-  };
-
-  const $ = id => document.getElementById(id);
-
-  const questions = [];
-  const cells = new Map();
-  const usedQuestions = new Set();
-
-  let score = 0;
-  let currentQuestion = null;
-  let finished = false;
-
-  // Формируем вопросы в порядке: 1, 2, 3, 4, 7, 9.
-  for (const row of ROW_NUMBERS) {
-    for (const value of VALUES) {
-      const id = value + "." + row;
-
-      const content = QUESTION_CONTENT[id] || {
-        question: "Этот вопрос пока не заполнен.",
-        answers: []
-      };
-
-      questions.push({
-        id,
-        row,
-        value,
-        image: "./" + id + ".png",
-        question: content.question,
-        answers: content.answers
-      });
-    }
-  }
-
-  function normalizeAnswer(value) {
-    return String(value ?? "")
-      .normalize("NFKC")
-      .toLocaleLowerCase("ru-RU")
-      .replace(/ё/g, "е")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  function getAnswers(question) {
-    if (!Array.isArray(question.answers)) {
-      return [];
-    }
-
-    return question.answers
-      .map(value => String(value).trim())
-      .filter(Boolean);
-  }
-
-  function isConfigured(question) {
-    const answers = getAnswers(question);
-
-    return (
-      answers.length > 0 &&
-      !answers.some(answer =>
-        normalizeAnswer(answer).includes("впишите ответ")
-      )
-    );
-  }
-
-  function updateScore() {
-    $("score").textContent = String(score);
-  }
-
-  function animateScoreChange(delta) {
-    const element = document.createElement("span");
-
-    element.className =
-      "score-change " +
-      (delta > 0 ? "is-positive" : "is-negative");
-
-    element.textContent =
-      delta > 0
-        ? "+" + delta
-        : "−" + Math.abs(delta);
-
-    element.setAttribute("aria-hidden", "true");
-
-    $("scoreWrap").append(element);
-
-    window.setTimeout(() => {
-      element.remove();
-    }, 1200);
-  }
-
-  function renderBoard() {
-    const labelContainer = $("rowLabels");
-    const board = $("board");
-
-    labelContainer.replaceChildren();
-    board.replaceChildren();
-    cells.clear();
-
-    labelContainer.style.gridTemplateRows =
-      "repeat(" + ROW_NUMBERS.length + ", 1fr)";
-
-    board.style.gridTemplateRows =
-      "repeat(" + ROW_NUMBERS.length + ", 1fr)";
-
-    ROW_NUMBERS.forEach(row => {
-      const element = document.createElement("div");
-
-      element.className = "row-label";
-      element.textContent = "№" + row;
-
-      labelContainer.append(element);
-    });
-
-    questions.forEach(question => {
-      const button = document.createElement("button");
-
-      button.type = "button";
-      button.className = "cell";
-
-      button.setAttribute(
-        "aria-label",
-        "№" + question.row +
-        ", вопрос на " +
-        question.value +
-        " очков"
-      );
-
-      button.setAttribute("aria-pressed", "false");
-
-      const image = document.createElement("img");
-
-      image.alt = "";
-      image.draggable = false;
-
-      const fallback = document.createElement("span");
-
-      fallback.className = "cell-fallback";
-      fallback.textContent = String(question.value);
-      fallback.hidden = true;
-
-      image.addEventListener("error", () => {
-        image.hidden = true;
-        fallback.hidden = false;
-      });
-
-      image.src = question.image;
-
-      button.append(image, fallback);
-
-      button.addEventListener("click", () => {
-        openQuestion(question);
-      });
-
-      cells.set(question.id, button);
-      board.append(button);
-    });
-  }
-
-  function setSelectedCell(id) {
-    for (const [cellId, button] of cells) {
-      const selected = cellId === id;
-
-      button.classList.toggle("is-selected", selected);
-
-      button.setAttribute(
-        "aria-pressed",
-        String(selected)
-      );
-    }
-  }
-
-  function openQuestion(question) {
-    if (finished || usedQuestions.has(question.id)) {
-      return;
-    }
-
-    currentQuestion = question;
-    setSelectedCell(question.id);
-
-    $("questionText").hidden = false;
-    $("questionText").classList.remove("is-placeholder");
-    $("questionText").textContent = question.question;
-
-    $("finishResult").hidden = true;
-
-    const input = $("answerInput");
-
-    input.classList.remove("is-correct", "is-wrong");
-    input.value = "";
-    input.placeholder = "Ответ";
-    input.readOnly = false;
-    input.disabled = false;
-    input.setAttribute("aria-label", "Введите ответ");
-
-    $("liveMessage").textContent = "";
-    $("answerHint").textContent =
-      "Введите ответ и нажмите Enter.";
-
-    if (!isConfigured(question)) {
-      input.disabled = true;
-      input.placeholder = "Вопрос ещё не настроен";
-
-      $("liveMessage").textContent =
-        "Добавьте правильный ответ в QUESTION_CONTENT " +
-        "для ячейки " + question.id +
-        ". Очки за неё пока не начисляются.";
-    } else {
-      input.focus();
-    }
-  }
-
-  function submitAnswer(event) {
-    event.preventDefault();
-
-    if (
-      finished ||
-      !currentQuestion ||
-      usedQuestions.has(currentQuestion.id)
-    ) {
-      return;
-    }
-
-    const question = currentQuestion;
-    const input = $("answerInput");
-
-    if (!isConfigured(question)) {
-      return;
-    }
-
-    const userAnswer = normalizeAnswer(input.value);
-
-    if (!userAnswer) {
-      $("liveMessage").textContent =
-        "Сначала введите ответ.";
-
-      input.focus();
-      return;
-    }
-
-    const answers = getAnswers(question);
-
-    const correct = answers.some(answer =>
-      normalizeAnswer(answer) === userAnswer
-    );
-
-    // Блокируем повторную отправку этого вопроса.
-    usedQuestions.add(question.id);
-    currentQuestion = null;
-
-    const delta = correct
-      ? question.value
-      : -question.value;
-
-    score += delta;
-
-    updateScore();
-    animateScoreChange(delta);
-
-    const button = cells.get(question.id);
-
-    if (button) {
-      button.disabled = true;
-      button.classList.add(
-        "is-used",
-        correct ? "is-correct" : "is-wrong"
-      );
-    }
-
-    input.readOnly = true;
-    input.classList.add(
-      correct ? "is-correct" : "is-wrong"
-    );
-
-    if (correct) {
-      input.value = "Верно!";
-    } else {
-      input.value =
-        "Неверно. Правильный ответ: " + answers[0];
-    }
-
-    input.setAttribute("aria-label", input.value);
-
-    input.setSelectionRange(0, 0);
-    input.scrollLeft = 0;
-
-    $("liveMessage").textContent = correct
-      ? "Начислено " + question.value + " очков."
-      : "Списано " + question.value + " очков.";
-
-    $("answerHint").textContent =
-      usedQuestions.size === questions.length
-        ? "Все вопросы пройдены. Нажмите «Завершить»."
-        : "Выберите следующую ячейку.";
-
-    const nextAvailable = questions.find(item =>
-      !usedQuestions.has(item.id)
-    );
-
-    if (nextAvailable) {
-      cells.get(nextAvailable.id)?.focus({
-        preventScroll: true
-      });
-    } else {
-      $("finishButton").focus({
-        preventScroll: true
-      });
-    }
-  }
-
-  function makeResultCode() {
-    // Заготовка для будущего переноса очков.
-    // Этот код пока не защищён и не привязан к базе.
-    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    const bytes = new Uint8Array(8);
-
-    window.crypto.getRandomValues(bytes);
-
-    const token = Array.from(
-      bytes,
-      byte => alphabet[byte % alphabet.length]
-    ).join("");
-
-    const scorePart = score < 0
-      ? "M" + Math.abs(score)
-      : String(score);
-
-    return (
-      "BALL-" +
-      token.slice(0, 4) +
-      "-" +
-      token.slice(4) +
-      "-" +
-      scorePart
-    );
-  }
-
-  function finishGame() {
-    if (finished) return;
-
-    const approved = window.confirm(
-      "Завершить игру? После этого отвечать " +
-      "на вопросы будет нельзя."
-    );
-
-    if (!approved) return;
-
-    const resultCode = makeResultCode();
-
-    finished = true;
-    currentQuestion = null;
-
-    for (const button of cells.values()) {
-      button.disabled = true;
-    }
-
-    setSelectedCell(null);
-
-    $("questionText").hidden = true;
-    $("finishResult").hidden = false;
-
-    $("finalScore").textContent =
-      "Ваш итоговый счёт: " + score;
-
-    $("resultCode").textContent = resultCode;
-
-    const input = $("answerInput");
-
-    input.value = "";
-    input.placeholder = "Игра завершена";
-    input.disabled = true;
-    input.readOnly = true;
-
-    input.classList.remove("is-correct", "is-wrong");
-    input.setAttribute("aria-label", "Игра завершена");
-
-    $("answerHint").textContent =
-      "Сохраните код результата.";
-
-    $("liveMessage").textContent =
-      "Игра завершена. Итоговый счёт: " + score + ".";
-
-    $("finishButton").textContent = "Завершено";
-    $("finishButton").disabled = true;
-  }
-
-  $("answerForm").addEventListener(
-    "submit",
-    submitAnswer
-  );
-
-  $("finishButton").addEventListener(
-    "click",
-    finishGame
-  );
-
-  renderBoard();
-  updateScore();
-})();
+window.BALLOMANIA_CONTENT = {
+  "50.1":  { answers: ["Долгопер"] },
+  "100.1": { answers: ["тумбочка"] },
+  "150.1": { answers: ["Шрек"] },
+  "200.1": { answers: ["дядя"] },
+  "250.1": { answers: ["84"] },
+
+  "50.2":  { answers: [] },
+  "100.2": { answers: [] },
+  "150.2": { answers: [] },
+  "200.2": { answers: [] },
+  "250.2": { answers: [] },
+
+  "50.3":  { answers: [] },
+  "100.3": { answers: [] },
+  "150.3": { answers: [] },
+  "200.3": { answers: [] },
+  "250.3": { answers: [] },
+
+  "50.4":  { answers: [] },
+  "100.4": { answers: [] },
+  "150.4": { answers: [] },
+  "200.4": { answers: [] },
+  "250.4": { answers: [] },
+
+  "50.7":  { answers: [] },
+  "100.7": { answers: [] },
+  "150.7": { answers: [] },
+  "200.7": { answers: [] },
+  "250.7": { answers: [] },
+
+  "50.9":  { answers: [] },
+  "100.9": { answers: [] },
+  "150.9": { answers: [] },
+  "200.9": { answers: [] },
+  "250.9": { answers: [] }
+};
 </script>
 
+<script src="./script.js"></script>
+
+<noscript>
+  Для игры необходимо включить JavaScript.
+</noscript>
 </body>
 </html>

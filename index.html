@@ -8,570 +8,469 @@
 <title>Балломания</title>
 
 <style>
-* {
-  box-sizing: border-box;
-}
-
-:root {
-  --background: #03032f;
-  --yellow: #ffff00;
-  --cell: #345995;
-  --hover: #416bad;
-  --selected: #459ff5;
-  --correct: #66ee94;
-  --wrong: #ff7777;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: var(--background);
-  color: white;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-button,
-input {
-  font: inherit;
-}
-
-[hidden] {
-  display: none !important;
-}
-
-button:focus-visible {
-  outline: 3px solid white;
-  outline-offset: 3px;
-}
-
-/* ===== ОСНОВНАЯ ИГРА ===== */
-
-.game {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-rows: 90px auto 1fr;
-  grid-template-areas:
-    ". score"
-    "board question"
-    ". finish";
-
-  column-gap: 38px;
-  row-gap: 30px;
-
-  width: min(1180px, 100%);
-  min-height: 100vh;
-
-  margin: 0 auto;
-  padding: 20px 40px 20px 16px;
-}
-
-/* ===== СЧЁТ ===== */
-
-.score-area {
-  grid-area: score;
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
-  min-width: 0;
-}
-
-.score-wrap {
-  position: relative;
-  width: 76%;
-  min-width: 200px;
-}
-
-.score-box {
-  min-height: 70px;
-  padding: 12px 20px;
-  border: 4px solid var(--yellow);
-  color: var(--yellow);
-  font-size: 34px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-.score-change {
-  position: absolute;
-  right: calc(100% + 14px);
-  top: 18px;
-  width: max-content;
-  font-size: 28px;
-  font-weight: 800;
-  pointer-events: none;
-  animation: score-float 1100ms ease-out forwards;
-}
-
-.score-change.positive {
-  color: var(--correct);
-}
-
-.score-change.negative {
-  color: var(--wrong);
-}
-
-@keyframes score-float {
-  0% {
-    opacity: 0;
-    transform: translateY(8px);
+  * {
+    box-sizing: border-box;
   }
 
-  20%, 70% {
-    opacity: 1;
+  :root {
+    --background: #03032f;
+    --yellow: #ffff00;
+    --cell: #345995;
+    --hover: #416bad;
+    --selected: #459ff5;
+    --correct: #66ee94;
+    --wrong: #ff7777;
   }
 
-  100% {
-    opacity: 0;
-    transform: translateY(-22px);
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--background);
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
   }
-}
 
-/* ===== ИГРОВОЕ ПОЛЕ ===== */
+  button,
+  input {
+    font: inherit;
+  }
 
-.board-area {
-  grid-area: board;
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
-  gap: 8px;
-  align-self: start;
-  min-width: 0;
-}
+  [hidden] {
+    display: none !important;
+  }
 
-.row-labels {
-  display: grid;
-  grid-template-rows: repeat(6, 1fr);
-  padding: 5px 0;
-}
+  button:focus-visible {
+    outline: 3px solid white;
+    outline-offset: 3px;
+  }
 
-.row-label {
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.board {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  grid-template-rows: repeat(6, 1fr);
-  aspect-ratio: 5 / 6;
-  border: 5px solid var(--yellow);
-  background: var(--cell);
-}
-
-.cell {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  min-height: 0;
-  padding: 0;
-  border: 1px solid #1c355b;
-  background: var(--cell);
-  color: white;
-  font-size: clamp(15px, 2vw, 21px);
-  font-weight: 800;
-  cursor: pointer;
-  transition: background 150ms ease, opacity 150ms ease;
-}
-
-.cell:hover:not(:disabled) {
-  background: var(--hover);
-}
-
-.cell.selected {
-  background: var(--selected);
-}
-
-.cell.used {
-  opacity: 0.4;
-}
-
-.cell.used::after {
-  position: absolute;
-  bottom: 2px;
-  right: 5px;
-  font-size: 18px;
-}
-
-.cell.correct::after {
-  content: "+";
-  color: var(--correct);
-}
-
-.cell.wrong::after {
-  content: "−";
-  color: var(--wrong);
-}
-
-.cell:disabled {
-  cursor: default;
-}
-
-/* ===== ВОПРОС ===== */
-
-.question-area {
-  grid-area: question;
-  align-self: start;
-  min-width: 0;
-  padding-top: 36px;
-}
-
-.question-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 250px;
-  padding: 12px;
-  border: 4px solid var(--yellow);
-  background: white;
-  color: #171717;
-}
-
-.question-image {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 540px;
-  object-fit: contain;
-}
-
-.question-placeholder {
-  margin: 0;
-  padding: 24px 8px;
-  color: #777;
-  text-align: center;
-  font-size: 15px;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-
-/* ===== ОТВЕТ ===== */
-
-.answer-form {
-  margin-top: 52px;
-}
-
-.answer-input {
-  display: block;
-  width: 100%;
-  min-height: 50px;
-  padding: 10px 12px;
-  border: 4px solid var(--yellow);
-  border-radius: 0;
-  outline: none;
-  background: white;
-  color: #171717;
-  font-size: 17px;
-  font-weight: 700;
-}
-
-.answer-input::placeholder {
-  color: #777;
-  opacity: 1;
-}
-
-.answer-input:focus {
-  box-shadow: 0 0 0 2px white;
-}
-
-.answer-input.correct {
-  background: #f1fff4;
-  color: #177b36;
-}
-
-.answer-input.wrong {
-  background: #fff4f4;
-  color: #a92222;
-}
-
-.answer-input:disabled {
-  opacity: 1;
-  -webkit-text-fill-color: currentColor;
-}
-
-.hint {
-  min-height: 18px;
-  margin: 10px 0 0;
-  color: #c3c3db;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.message {
-  min-height: 18px;
-  margin: 8px 0 0;
-  color: var(--yellow);
-  font-size: 13px;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-
-/* ===== ЗАВЕРШЕНИЕ ИГРЫ ===== */
-
-.finish-area {
-  grid-area: finish;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  min-height: 90px;
-}
-
-.finish-button {
-  width: 220px;
-  min-height: 62px;
-  padding: 12px 18px;
-  border: 5px solid var(--yellow);
-  background: transparent;
-  color: var(--yellow);
-  font-size: 18px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.finish-button:hover:not(:disabled) {
-  background: #ffff0014;
-}
-
-.finish-button:disabled {
-  opacity: 0.65;
-  cursor: default;
-}
-
-.finish-result {
-  width: 100%;
-  padding: 12px 0;
-  text-align: center;
-}
-
-.finish-result h1 {
-  margin: 0 0 12px;
-  font-size: 22px;
-}
-
-.result-code {
-  display: block;
-  padding: 12px 8px;
-  border: 1px solid #ddd;
-  background: #f5f5f5;
-  font-family: Consolas, monospace;
-  font-size: 17px;
-  font-weight: 800;
-  overflow-wrap: anywhere;
-  user-select: all;
-}
-
-.copy-button {
-  margin-top: 12px;
-  padding: 9px 14px;
-  border: 0;
-  border-radius: 7px;
-  background: var(--background);
-  color: white;
-  cursor: pointer;
-}
-
-.copy-button:focus-visible {
-  outline-color: #171717;
-}
-
-.code-description {
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.code-warning {
-  color: #777;
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-/* ===== КНОПКА УЧЕНИКА ===== */
-
-.student-button {
-  position: fixed;
-  bottom: 18px;
-  left: 18px;
-  z-index: 9998;
-  padding: 12px 18px;
-  border: 2px solid var(--yellow);
-  background: var(--cell);
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  border-radius: 8px;
-}
-
-.student-button:hover {
-  background: var(--hover);
-}
-
-/* ===== ОКНО УЧЕНИКА ===== */
-
-.student-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 15px;
-  background: rgba(0, 0, 0, 0.85);
-}
-
-.student-window {
-  width: min(700px, 100%);
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 22px;
-  background: #03032f;
-  color: white;
-  border: 4px solid var(--yellow);
-  border-radius: 12px;
-}
-
-.student-window h2 {
-  margin-top: 0;
-  color: var(--yellow);
-}
-
-.student-window h3 {
-  margin: 16px 0;
-}
-
-.student-task-image {
-  display: block;
-  max-width: 100%;
-  max-height: 55vh;
-  margin: 15px auto;
-  object-fit: contain;
-  background: white;
-  border-radius: 5px;
-}
-
-.student-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.student-controls button {
-  padding: 12px 16px;
-  border: 2px solid var(--yellow);
-  background: var(--cell);
-  color: white;
-  font-weight: bold;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.student-controls button:hover {
-  background: var(--hover);
-}
-
-.student-controls button:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.student-answer {
-  width: 100%;
-  padding: 12px;
-  font-size: 18px;
-  margin-top: 10px;
-}
-
-.student-message {
-  min-height: 25px;
-  margin-top: 12px;
-  color: var(--yellow);
-  line-height: 1.5;
-}
-
-.student-close {
-  float: right;
-  background: #a22 !important;
-  border-color: white !important;
-}
-
-/* ===== МОБИЛЬНАЯ ВЕРСИЯ ===== */
-
-@media (max-width: 760px) {
   .game {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: 90px auto 1fr;
     grid-template-areas:
-      "score"
-      "board"
-      "question"
-      "finish";
-    gap: 24px;
-    padding: 20px 16px 28px;
+      ". score"
+      "board question"
+      ". finish";
+
+    column-gap: 38px;
+    row-gap: 30px;
+
+    width: min(1180px, 100%);
+    min-height: 100vh;
+
+    margin: 0 auto;
+    padding: 20px 40px 20px 16px;
+  }
+
+  /* Счёт */
+
+  .score-area {
+    grid-area: score;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    min-width: 0;
   }
 
   .score-wrap {
-    width: 60%;
-    min-width: 170px;
+    position: relative;
+    width: 76%;
+    min-width: 200px;
   }
 
   .score-box {
-    min-height: 60px;
-    font-size: 30px;
-  }
-
-  .board-area {
-    grid-template-columns: 34px minmax(0, 1fr);
-    gap: 6px;
-  }
-
-  .cell {
-    font-size: clamp(14px, 4vw, 21px);
-  }
-
-  .question-area {
-    padding-top: 0;
-  }
-
-  .question-box {
-    min-height: 230px;
-  }
-
-  .answer-form {
-    margin-top: 22px;
-  }
-
-  .finish-area {
-    min-height: 60px;
-  }
-
-  .student-button {
-    bottom: 10px;
-    left: 10px;
-    font-size: 13px;
-  }
-
-  .student-window {
-    padding: 15px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cell {
-    transition: none;
+    min-height: 70px;
+    padding: 12px 20px;
+    border: 4px solid var(--yellow);
+    color: var(--yellow);
+    font-size: 34px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
   }
 
   .score-change {
-    animation: none;
+    position: absolute;
+    right: calc(100% + 14px);
+    top: 18px;
+
+    width: max-content;
+    font-size: 28px;
+    font-weight: 800;
+
+    pointer-events: none;
+    animation: score-float 1100ms ease-out forwards;
   }
-}
+
+  .score-change.positive {
+    color: var(--correct);
+  }
+
+  .score-change.negative {
+    color: var(--wrong);
+  }
+
+  @keyframes score-float {
+    0% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    20%,
+    70% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translateY(-22px);
+    }
+  }
+
+  /* Таблица */
+
+  .board-area {
+    grid-area: board;
+
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 8px;
+
+    align-self: start;
+    min-width: 0;
+  }
+
+  .row-labels {
+    display: grid;
+    grid-template-rows: repeat(6, 1fr);
+    padding: 5px 0;
+  }
+
+  .row-label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-rows: repeat(6, 1fr);
+
+    aspect-ratio: 5 / 6;
+
+    border: 5px solid var(--yellow);
+    background: var(--cell);
+  }
+
+  .cell {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+
+    border: 1px solid #1c355b;
+    background: var(--cell);
+    color: white;
+
+    font-size: clamp(15px, 2vw, 21px);
+    font-weight: 800;
+
+    cursor: pointer;
+    transition: background 150ms ease, opacity 150ms ease;
+  }
+
+  .cell:hover:not(:disabled) {
+    background: var(--hover);
+  }
+
+  .cell.selected {
+    background: var(--selected);
+  }
+
+  .cell.used {
+    opacity: 0.4;
+  }
+
+  .cell.used::after {
+    position: absolute;
+    bottom: 2px;
+    right: 5px;
+    font-size: 18px;
+  }
+
+  .cell.correct::after {
+    content: "+";
+    color: var(--correct);
+  }
+
+  .cell.wrong::after {
+    content: "−";
+    color: var(--wrong);
+  }
+
+  .cell:disabled {
+    cursor: default;
+  }
+
+  /* Картинка вопроса */
+
+  .question-area {
+    grid-area: question;
+    align-self: start;
+    min-width: 0;
+    padding-top: 36px;
+  }
+
+  .question-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 250px;
+    padding: 12px;
+
+    border: 4px solid var(--yellow);
+    background: white;
+    color: #171717;
+  }
+
+  .question-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 540px;
+    object-fit: contain;
+  }
+
+  .question-placeholder {
+    margin: 0;
+    padding: 24px 8px;
+    color: #777;
+    text-align: center;
+    font-size: 15px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  /* Ответ */
+
+  .answer-form {
+    margin-top: 52px;
+  }
+
+  .answer-input {
+    display: block;
+
+    width: 100%;
+    min-height: 50px;
+    padding: 10px 12px;
+
+    border: 4px solid var(--yellow);
+    border-radius: 0;
+    outline: none;
+
+    background: white;
+    color: #171717;
+
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .answer-input::placeholder {
+    color: #777;
+    opacity: 1;
+  }
+
+  .answer-input:focus {
+    box-shadow: 0 0 0 2px white;
+  }
+
+  .answer-input.correct {
+    background: #f1fff4;
+    color: #177b36;
+  }
+
+  .answer-input.wrong {
+    background: #fff4f4;
+    color: #a92222;
+  }
+
+  .answer-input:disabled {
+    opacity: 1;
+    -webkit-text-fill-color: currentColor;
+  }
+
+  .hint {
+    min-height: 18px;
+    margin: 10px 0 0;
+    color: #c3c3db;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .message {
+    min-height: 18px;
+    margin: 8px 0 0;
+    color: var(--yellow);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  /* Завершение */
+
+  .finish-area {
+    grid-area: finish;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    min-height: 90px;
+  }
+
+  .finish-button {
+    width: 220px;
+    min-height: 62px;
+    padding: 12px 18px;
+
+    border: 5px solid var(--yellow);
+    background: transparent;
+    color: var(--yellow);
+
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .finish-button:hover:not(:disabled) {
+    background: #ffff0014;
+  }
+
+  .finish-button:disabled {
+    opacity: 0.65;
+    cursor: default;
+  }
+
+  .finish-result {
+    width: 100%;
+    padding: 12px 0;
+    text-align: center;
+  }
+
+  .finish-result h1 {
+    margin: 0 0 12px;
+    font-size: 22px;
+  }
+
+  .result-code {
+    display: block;
+    padding: 12px 8px;
+    border: 1px solid #ddd;
+    background: #f5f5f5;
+
+    font-family: Consolas, monospace;
+    font-size: 17px;
+    font-weight: 800;
+
+    overflow-wrap: anywhere;
+    user-select: all;
+  }
+
+  .copy-button {
+    margin-top: 12px;
+    padding: 9px 14px;
+    border: 0;
+    border-radius: 7px;
+    background: var(--background);
+    color: white;
+    cursor: pointer;
+  }
+
+  .copy-button:focus-visible {
+    outline-color: #171717;
+  }
+
+  .code-description {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .code-warning {
+    color: #777;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 760px) {
+    .game {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto auto;
+      grid-template-areas:
+        "score"
+        "board"
+        "question"
+        "finish";
+
+      gap: 24px;
+      padding: 20px 16px 28px;
+    }
+
+    .score-wrap {
+      width: 60%;
+      min-width: 170px;
+    }
+
+    .score-box {
+      min-height: 60px;
+      font-size: 30px;
+    }
+
+    .board-area {
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 6px;
+    }
+
+    .cell {
+      font-size: clamp(14px, 4vw, 21px);
+    }
+
+    .question-area {
+      padding-top: 0;
+    }
+
+    .question-box {
+      min-height: 230px;
+    }
+
+    .answer-form {
+      margin-top: 22px;
+    }
+
+    .finish-area {
+      min-height: 60px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cell {
+      transition: none;
+    }
+
+    .score-change {
+      animation: none;
+    }
+  }
 </style>
 </head>
 
 <body>
-
 <main class="game" aria-label="Балломания">
 
   <section class="score-area" aria-label="Ваш счёт">
@@ -591,7 +490,6 @@ button:focus-visible {
   </section>
 
   <section class="question-area" aria-label="Вопрос и ответ">
-
     <div class="question-box">
 
       <p id="questionPlaceholder" class="question-placeholder">
@@ -606,7 +504,6 @@ button:focus-visible {
       >
 
       <div id="finishResult" class="finish-result" hidden>
-
         <h1>Игра завершена!</h1>
 
         <p id="finalScore"></p>
@@ -624,13 +521,11 @@ button:focus-visible {
 
         <p id="codeDescription" class="code-description"></p>
         <p id="codeWarning" class="code-warning"></p>
-
       </div>
 
     </div>
 
     <form id="answerForm" class="answer-form">
-
       <input
         id="answerInput"
         class="answer-input"
@@ -654,110 +549,20 @@ button:focus-visible {
         role="status"
         aria-live="polite"
       ></p>
-
     </form>
-
   </section>
 
   <div class="finish-area">
-
-    <button
-      id="finishButton"
-      class="finish-button"
-      type="button"
-    >
+    <button id="finishButton" class="finish-button" type="button">
       Завершить
     </button>
-
   </div>
-
-  <!-- КНОПКА УЧЕНИКА -->
-
-  <button
-    id="studentTasksButton"
-    class="student-button"
-    type="button"
-  >
-    🎮 Задания преподавателя
-  </button>
 
 </main>
 
-<!-- ===== ОКНО УЧЕНИКА ===== -->
-
-<div id="studentTasksModal" class="student-modal" hidden>
-
-  <div class="student-window">
-
-    <button
-      id="studentCloseButton"
-      class="student-controls student-close"
-      type="button"
-    >
-      Закрыть ✖
-    </button>
-
-    <h2>🎮 Задания преподавателя</h2>
-
-    <p id="studentTaskStatus">
-      Загрузка заданий...
-    </p>
-
-    <div id="studentTaskContent" hidden>
-
-      <h3 id="studentTaskTitle"></h3>
-
-      <img
-        id="studentTaskImage"
-        class="student-task-image"
-        alt="Изображение задания"
-      >
-
-      <input
-        id="studentTaskAnswer"
-        class="student-answer"
-        type="text"
-        placeholder="Введите ответ"
-        autocomplete="off"
-      >
-
-      <div class="student-controls">
-
-        <button
-          id="studentCheckButton"
-          type="button"
-        >
-          Проверить ответ
-        </button>
-
-        <button
-          id="studentNextButton"
-          type="button"
-          hidden
-        >
-          Следующее задание →
-        </button>
-
-      </div>
-
-      <p
-        id="studentTaskMessage"
-        class="student-message"
-        role="status"
-        aria-live="polite"
-      ></p>
-
-    </div>
-
-  </div>
-
-</div>
-
-<!-- ===== ОТВЕТЫ ОСНОВНОЙ ИГРЫ ===== -->
-
+<!-- ОТВЕТЫ ОСНОВНОЙ ИГРЫ -->
 <script>
 window.BALLOMANIA_CONTENT = {
-
   "50.1":  { answers: ["Долгопер"] },
   "100.1": { answers: ["тумбочка"] },
   "150.1": { answers: ["Шрек"] },
@@ -793,304 +598,19 @@ window.BALLOMANIA_CONTENT = {
   "150.9": { answers: ["34"] },
   "200.9": { answers: ["11"] },
   "250.9": { answers: ["16"] }
-
 };
 </script>
 
-<!-- ===== КОНФИГУРАЦИЯ SUPABASE ===== -->
-
+<!-- Конфигурация Supabase -->
 <script src="./teacher-config.js"></script>
 
-<!-- ===== ИНТЕРФЕЙС ПРЕПОДАВАТЕЛЯ ===== -->
-
+<!-- Интерфейс преподавателя -->
 <script src="./teacher.js"></script>
 
-<!-- ===== УЧЕНИЧЕСКИЙ ИНТЕРФЕЙС ===== -->
-
-<script>
-(() => {
-  const button = document.getElementById("studentTasksButton");
-  const modal = document.getElementById("studentTasksModal");
-  const closeButton = document.getElementById("studentCloseButton");
-
-  const status = document.getElementById("studentTaskStatus");
-  const content = document.getElementById("studentTaskContent");
-  const title = document.getElementById("studentTaskTitle");
-  const image = document.getElementById("studentTaskImage");
-  const answer = document.getElementById("studentTaskAnswer");
-  const checkButton = document.getElementById("studentCheckButton");
-  const nextButton = document.getElementById("studentNextButton");
-  const message = document.getElementById("studentTaskMessage");
-
-  let tasks = [];
-  let currentIndex = 0;
-  let taskChecked = false;
-
-  function getSupabaseConfig() {
-    const url = window.TEACHER_SUPABASE_URL;
-    const key = window.TEACHER_SUPABASE_KEY;
-
-    if (!url || !key) {
-      throw new Error("Не настроено подключение к Supabase.");
-    }
-
-    return { url, key };
-  }
-
-  async function callRPC(functionName, params = {}) {
-    const { url, key } = getSupabaseConfig();
-
-    const response = await fetch(
-      url + "/rest/v1/rpc/" + functionName,
-      {
-        method: "POST",
-        headers: {
-          "apikey": key,
-          "Authorization": "Bearer " + key,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(params)
-      }
-    );
-
-    const result = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      console.error("Supabase RPC error:", result);
-
-      throw new Error(
-        result?.message ||
-        result?.details ||
-        result?.hint ||
-        "Ошибка обращения к базе данных."
-      );
-    }
-
-    return result;
-  }
-
-  async function loadTasks() {
-    status.textContent = "Загружаем задания...";
-    content.hidden = true;
-
-    try {
-      const result = await callRPC("student_list_tasks", {});
-
-      tasks = Array.isArray(result) ? result : [];
-
-      if (tasks.length === 0) {
-        status.textContent =
-          "Преподаватель пока не добавил задания.";
-
-        return;
-      }
-
-      currentIndex = 0;
-
-      status.textContent = "";
-      content.hidden = false;
-
-      showTask();
-
-    } catch (error) {
-      console.error("Ошибка загрузки заданий:", error);
-
-      status.textContent =
-        "Не удалось загрузить задания. " +
-        "Попробуйте обновить страницу.";
-    }
-  }
-
-  function showTask() {
-    if (!tasks.length) return;
-
-    if (currentIndex >= tasks.length) {
-      content.hidden = true;
-
-      status.textContent =
-        "🎉 Вы выполнили все доступные задания!";
-
-      return;
-    }
-
-    const task = tasks[currentIndex];
-
-    taskChecked = false;
-
-    title.textContent =
-      "Задание №" + task.task_number +
-      " — " + (currentIndex + 1) +
-      " из " + tasks.length;
-
-    image.onload = () => {
-      message.textContent = "";
-    };
-
-    image.onerror = () => {
-      message.textContent =
-        "Не удалось загрузить изображение задания.";
-    };
-
-    image.src = task.image_url;
-    image.alt = "Задание №" + task.task_number;
-
-    answer.value = "";
-    answer.disabled = false;
-
-    answer.classList.remove("correct", "wrong");
-
-    checkButton.disabled = false;
-    checkButton.hidden = false;
-
-    nextButton.hidden = true;
-
-    message.textContent = "";
-
-    content.hidden = false;
-  }
-
-  function getCorrectStatus(result) {
-    if (typeof result === "boolean") {
-      return result;
-    }
-
-    if (typeof result === "string") {
-      if (result.toLowerCase() === "true") return true;
-      if (result.toLowerCase() === "false") return false;
-
-      try {
-        const parsed = JSON.parse(result);
-        return getCorrectStatus(parsed);
-      } catch {
-        return false;
-      }
-    }
-
-    if (result && typeof result === "object") {
-      if (typeof result.correct === "boolean") {
-        return result.correct;
-      }
-
-      if (typeof result.is_correct === "boolean") {
-        return result.is_correct;
-      }
-
-      if (typeof result.success === "boolean") {
-        return result.success;
-      }
-
-      if (typeof result.result === "boolean") {
-        return result.result;
-      }
-    }
-
-    return false;
-  }
-
-  async function checkAnswer() {
-    if (taskChecked) return;
-
-    const userAnswer = answer.value.trim();
-
-    if (!userAnswer) {
-      message.textContent = "Введите ответ.";
-      answer.focus();
-      return;
-    }
-
-    const task = tasks[currentIndex];
-
-    checkButton.disabled = true;
-    message.textContent = "Проверяем ответ...";
-
-    try {
-      const result = await callRPC(
-        "student_check_task_answer",
-        {
-          p_task_number: task.task_number,
-          p_answer: userAnswer
-        }
-      );
-
-      const correct = getCorrectStatus(result);
-
-      if (correct) {
-        taskChecked = true;
-
-        answer.disabled = true;
-        answer.classList.remove("wrong");
-        answer.classList.add("correct");
-
-        message.textContent = "✅ Правильно!";
-
-        checkButton.hidden = true;
-        nextButton.hidden = false;
-
-      } else {
-        answer.classList.remove("correct");
-        answer.classList.add("wrong");
-
-        message.textContent =
-          "❌ Неверно. Попробуйте ещё раз.";
-
-        checkButton.disabled = false;
-
-        answer.focus();
-      }
-
-    } catch (error) {
-      console.error("Ошибка проверки ответа:", error);
-
-      message.textContent =
-        "Не удалось проверить ответ. Попробуйте ещё раз.";
-
-      checkButton.disabled = false;
-    }
-  }
-
-  function nextTask() {
-    if (!taskChecked) return;
-
-    currentIndex++;
-    showTask();
-  }
-
-  button.addEventListener("click", async () => {
-    modal.hidden = false;
-    await loadTasks();
-  });
-
-  closeButton.addEventListener("click", () => {
-    modal.hidden = true;
-  });
-
-  modal.addEventListener("click", event => {
-    if (event.target === modal) {
-      modal.hidden = true;
-    }
-  });
-
-  checkButton.addEventListener("click", checkAnswer);
-
-  nextButton.addEventListener("click", nextTask);
-
-  answer.addEventListener("keydown", event => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-
-      if (!taskChecked) {
-        checkAnswer();
-      }
-    }
-  });
-
-})();
-</script>
-
-<!-- ===== УЧЕНИЧЕСКИЕ ЗАДАНИЯ ===== -->
+<!-- Ученический список заданий и открытие выбранного задания -->
 <script src="./student.js"></script>
 
-<!-- ===== ОСНОВНАЯ ИГРА ===== -->
+<!-- Основная игра -->
 <script src="./script.js"></script>
 
 <noscript>

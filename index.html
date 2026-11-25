@@ -470,6 +470,7 @@
 </head>
 
 <body>
+
 <main class="game" aria-label="Балломания">
 
   <section class="score-area" aria-label="Ваш счёт">
@@ -489,6 +490,7 @@
   </section>
 
   <section class="question-area" aria-label="Вопрос и ответ">
+
     <div class="question-box">
 
       <p id="questionPlaceholder" class="question-placeholder">
@@ -503,6 +505,7 @@
       >
 
       <div id="finishResult" class="finish-result" hidden>
+
         <h1>Игра завершена!</h1>
 
         <p id="finalScore"></p>
@@ -520,11 +523,13 @@
 
         <p id="codeDescription" class="code-description"></p>
         <p id="codeWarning" class="code-warning"></p>
+
       </div>
 
     </div>
 
     <form id="answerForm" class="answer-form">
+
       <input
         id="answerInput"
         class="answer-input"
@@ -548,33 +553,32 @@
         role="status"
         aria-live="polite"
       ></p>
+
     </form>
+
   </section>
 
   <div class="finish-area">
-    <button id="finishButton" class="finish-button" type="button">
+
+    <button
+      id="finishButton"
+      class="finish-button"
+      type="button"
+    >
       Завершить
     </button>
+
   </div>
 
 </main>
 
 <!--
-  ОТВЕТЫ НАХОДЯТСЯ ЗДЕСЬ.
-
-  Перенесите сюда свои уже заполненные ответы.
-
-  Пример:
-  "50.1": { answers: ["4", "четыре"] }
-
-  Пустой список [] означает, что ответ ещё не задан.
-
-  Если у вас уже есть целиком заполненный объект
-  QUESTION_CONTENT, можно вставить его содержимое сюда.
-  Поля question допустимо оставить — игра их не использует.
+  ОТВЕТЫ НА ВОПРОСЫ ИГРОВОГО ПОЛЯ
 -->
+
 <script>
 window.BALLOMANIA_CONTENT = {
+
   "50.1":  { answers: ["Долгопер"] },
   "100.1": { answers: ["тумбочка"] },
   "150.1": { answers: ["Шрек"] },
@@ -610,11 +614,15 @@ window.BALLOMANIA_CONTENT = {
   "150.9": { answers: ["34"] },
   "200.9": { answers: ["11"] },
   "250.9": { answers: ["16"] }
+
 };
 </script>
 
-<!-- Подключение отдельной базы заданий преподавателя -->
+<!-- Конфигурация отдельной базы заданий преподавателя -->
 <script src="./teacher-config.js"></script>
+
+<!-- Интерфейс преподавателя -->
+<script src="./teacher.js"></script>
 
 <!-- Основной скрипт игры Балломания -->
 <script src="./script.js"></script>
@@ -622,5 +630,6 @@ window.BALLOMANIA_CONTENT = {
 <noscript>
   Для игры необходимо включить JavaScript.
 </noscript>
+
 </body>
 </html>

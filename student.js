@@ -1,501 +1,570 @@
 
 (() => {
-    "use strict";
+  "use strict";
 
-    const SUPABASE_URL = window.TEACHER_SUPABASE_URL;
-    const SUPABASE_KEY = window.TEACHER_SUPABASE_KEY;
+  const SUPABASE_URL = window.TEACHER_SUPABASE_URL;
+  const SUPABASE_KEY = window.TEACHER_SUPABASE_KEY;
+  const STORAGE_BUCKET = "teacher-task-images";
 
-    if (!SUPABASE_URL || !SUPABASE_KEY) {
-        console.error("Балломания: настройки Supabase не найдены.");
-        return;
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.error("Не найдены настройки Supabase в teacher-config.js");
+    return;
+  }
+
+  // ==========================================
+  // SUPABASE
+  // ==========================================
+
+  async function callRPC(functionName, params = {}) {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/rpc/${functionName}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        },
+        body: JSON.stringify(params)
+      }
+    );
+
+    const text = await response.text();
+
+    if (!response.ok) {
+      console.error("Ошибка Supabase:", functionName, text);
+      throw new Error(text || "Ошибка обращения к серверу");
     }
 
-    let tasks = [];
-    let currentIndex = 0;
-    let isChecking = false;
+    if (!text) return null;
 
-    // ---------- ЗАПРОСЫ К SUPABASE ----------
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text;
+    }
+  }
 
-    async function rpc(functionName, params = {}) {
-        const response = await fetch(
-            `${SUPABASE_URL}/rest/v1/rpc/${functionName}`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "apikey": SUPABASE_KEY,
-                    "Authorization": `Bearer ${SUPABASE_KEY}`
-                },
-                body: JSON.stringify(params)
-            }
-        );
-
-        const data = await response.json().catch(() => null);
-
-        if (!response.ok) {
-            throw new Error(
-                data?.message || data?.details || "Ошибка запроса к серверу"
-            );
-        }
-
-        return data;
+  function getImageUrl(task) {
+    if (task.image_url) {
+      return task.image_url;
     }
 
-    // ---------- СОЗДАНИЕ ИНТЕРФЕЙСА ----------
+    if (task.image_path) {
+      if (task.image_path.startsWith("http")) {
+        return task.image_path;
+      }
 
-    function createInterface() {
-        if (document.getElementById("studentTasksButton")) return;
-
-        const button = document.createElement("button");
-        button.id = "studentTasksButton";
-        button.textContent = "🎮 Задания преподавателя";
-
-        Object.assign(button.style, {
-            position: "fixed",
-            right: "20px",
-            bottom: "20px",
-            zIndex: "99998",
-            padding: "14px 20px",
-            border: "none",
-            borderRadius: "14px",
-            background: "#3878e8",
-            color: "#fff",
-            fontSize: "16px",
-            fontWeight: "bold",
-            cursor: "pointer",
-            boxShadow: "0 4px 15px rgba(0,0,0,.2)"
-        });
-
-        button.addEventListener("click", openStudentTasks);
-        document.body.appendChild(button);
-
-        const overlay = document.createElement("div");
-        overlay.id = "studentTasksOverlay";
-
-        Object.assign(overlay.style, {
-            display: "none",
-            position: "fixed",
-            inset: "0",
-            zIndex: "99999",
-            background: "rgba(0,0,0,.72)",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: "15px",
-            boxSizing: "border-box"
-        });
-
-        overlay.innerHTML = `
-            <div id="studentTasksWindow">
-                <button id="studentTasksClose" title="Закрыть">✕</button>
-
-                <div id="studentTasksContent">
-                    <h2>Задания преподавателя</h2>
-                    <p>Загрузка заданий...</p>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(overlay);
-
-        const style = document.createElement("style");
-        style.textContent = `
-            #studentTasksWindow {
-                background: #fff;
-                color: #222;
-                width: 100%;
-                max-width: 750px;
-                max-height: 90vh;
-                overflow-y: auto;
-                border-radius: 20px;
-                padding: 25px;
-                box-sizing: border-box;
-                position: relative;
-                font-family: Arial, sans-serif;
-            }
-
-            #studentTasksClose {
-                position: sticky;
-                float: right;
-                top: 0;
-                border: none;
-                background: #eeeeee;
-                border-radius: 50%;
-                width: 38px;
-                height: 38px;
-                font-size: 20px;
-                cursor: pointer;
-                z-index: 2;
-            }
-
-            #studentTasksContent {
-                text-align: center;
-                clear: both;
-            }
-
-            #studentTasksContent h2 {
-                margin: 10px 0 20px;
-            }
-
-            #studentTaskImage {
-                display: block;
-                max-width: 100%;
-                max-height: 55vh;
-                margin: 15px auto;
-                object-fit: contain;
-                border-radius: 10px;
-            }
-
-            #studentTaskAnswer {
-                width: 100%;
-                max-width: 400px;
-                padding: 13px;
-                font-size: 18px;
-                box-sizing: border-box;
-                border: 2px solid #ccc;
-                border-radius: 10px;
-                margin: 10px 0;
-            }
-
-            .studentTaskButton {
-                padding: 12px 20px;
-                margin: 7px;
-                border: none;
-                border-radius: 10px;
-                background: #3878e8;
-                color: white;
-                font-size: 16px;
-                cursor: pointer;
-            }
-
-            .studentTaskButton:disabled {
-                opacity: .6;
-                cursor: wait;
-            }
-
-            #studentTaskResult {
-                font-size: 18px;
-                font-weight: bold;
-                margin: 15px 0;
-            }
-
-            @media (max-width: 600px) {
-                #studentTasksWindow {
-                    padding: 15px;
-                    max-height: 95vh;
-                }
-
-                #studentTasksButton {
-                    right: 10px !important;
-                    bottom: 10px !important;
-                    font-size: 13px !important;
-                    padding: 12px !important;
-                }
-            }
-        `;
-
-        document.head.appendChild(style);
-
-        document.getElementById("studentTasksClose")
-            .addEventListener("click", closeStudentTasks);
-
-        overlay.addEventListener("click", event => {
-            if (event.target === overlay) {
-                closeStudentTasks();
-            }
-        });
+      return `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${task.image_path}`;
     }
 
-    // ---------- ОТКРЫТИЕ ОКНА ----------
+    return "";
+  }
 
-    async function openStudentTasks() {
-        const overlay = document.getElementById("studentTasksOverlay");
-        const content = document.getElementById("studentTasksContent");
+  // ==========================================
+  // КНОПКА "ЗАДАНИЯ"
+  // ==========================================
 
-        overlay.style.display = "flex";
+  function findTasksButton() {
+    // Сначала проверяем известные варианты ID
+    const possibleIds = [
+      "studentTasksButton",
+      "tasksButton",
+      "tasks-btn",
+      "student-tasks-button",
+      "openTasksButton"
+    ];
 
-        content.innerHTML = `
-            <h2>Задания преподавателя</h2>
-            <p>Загружаем задания...</p>
-        `;
-
-        try {
-            const result = await rpc("student_list_tasks");
-
-            tasks = Array.isArray(result) ? result : [];
-
-            if (!tasks.length) {
-                content.innerHTML = `
-                    <h2>Задания преподавателя</h2>
-                    <p>Пока преподаватель не добавил задания.</p>
-                `;
-                return;
-            }
-
-            currentIndex = 0;
-            showTask();
-
-        } catch (error) {
-            console.error(error);
-
-            content.innerHTML = `
-                <h2>Не удалось загрузить задания</h2>
-                <p>${escapeHTML(error.message)}</p>
-                <button class="studentTaskButton" id="studentTasksRetry">
-                    Повторить
-                </button>
-            `;
-
-            document.getElementById("studentTasksRetry")
-                .addEventListener("click", openStudentTasks);
-        }
+    for (const id of possibleIds) {
+      const element = document.getElementById(id);
+      if (element) return element;
     }
 
-    // ---------- ПОКАЗ ЗАДАНИЯ ----------
+    // Ищем существующую кнопку по тексту
+    const buttons = Array.from(document.querySelectorAll("button"));
 
-    function showTask() {
-        const content = document.getElementById("studentTasksContent");
+    return buttons.find(button => {
+      const text = button.textContent.trim().toLowerCase();
+      return text === "задания" ||
+             text === "📚 задания" ||
+             text === "🎮 задания";
+    }) || null;
+  }
 
-        if (currentIndex >= tasks.length) {
-            showCompletion();
-            return;
-        }
+  function createTasksButton() {
+    const button = document.createElement("button");
 
-        const task = tasks[currentIndex];
+    button.id = "studentTasksButton";
+    button.type = "button";
+    button.textContent = "📚 Задания";
 
-        isChecking = false;
+    button.style.cssText = `
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 9998;
+      padding: 12px 18px;
+      border: 2px solid #ffff00;
+      border-radius: 12px;
+      background: #345995;
+      color: #ffff00;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    `;
 
-        content.innerHTML = `
-            <h2>Задания преподавателя</h2>
+    document.body.appendChild(button);
+    return button;
+  }
 
-            <p>
-                Задание ${currentIndex + 1} из ${tasks.length}
-            </p>
+  // ==========================================
+  // СОЗДАНИЕ ОКНА
+  // ==========================================
 
-            <div style="
-                height: 8px;
-                background: #e5e5e5;
-                border-radius: 10px;
-                overflow: hidden;
-                margin: 15px 0;
-            ">
-                <div style="
-                    width: ${((currentIndex + 1) / tasks.length) * 100}%;
-                    height: 100%;
-                    background: #3878e8;
-                "></div>
-            </div>
+  const modal = document.createElement("div");
+  modal.id = "studentTasksModal";
 
-            <h3>Задание №${escapeHTML(task.task_number)}</h3>
+  modal.style.cssText = `
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,0.82);
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    align-items: center;
+    justify-content: center;
+  `;
 
-            <img
-                id="studentTaskImage"
-                src="${escapeHTML(task.image_url || "")}"
-                alt="Изображение задания"
-            >
+  modal.innerHTML = `
+    <div id="studentTasksWindow" style="
+      width: 100%;
+      max-width: 650px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #03032f;
+      color: #ffff00;
+      border: 3px solid #ffff00;
+      border-radius: 18px;
+      padding: 22px;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    ">
 
-            <input
-                id="studentTaskAnswer"
-                type="text"
-                placeholder="Введите ответ"
-                autocomplete="off"
-            >
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+      ">
+        <h2 id="studentTasksHeading" style="margin: 0;">
+          📚 Задания
+        </h2>
 
-            <div id="studentTaskResult"></div>
+        <button id="studentTasksClose" type="button" style="
+          background: #ff7777;
+          color: #03032f;
+          border: none;
+          border-radius: 10px;
+          padding: 9px 14px;
+          font-size: 18px;
+          font-weight: bold;
+          cursor: pointer;
+        ">✕</button>
+      </div>
 
-            <button class="studentTaskButton" id="studentTaskCheck">
-                Проверить ответ
-            </button>
+      <div id="studentTasksList"></div>
 
-            <button
-                class="studentTaskButton"
-                id="studentTaskNext"
-                style="display:none"
-            >
-                Следующее задание →
-            </button>
-        `;
+      <div id="studentSelectedTask" style="display: none;">
 
-        const answerInput = document.getElementById("studentTaskAnswer");
-        const checkButton = document.getElementById("studentTaskCheck");
+        <button id="studentBackToList" type="button" style="
+          background: #345995;
+          color: #ffff00;
+          border: 1px solid #ffff00;
+          border-radius: 10px;
+          padding: 10px 14px;
+          margin-bottom: 18px;
+          cursor: pointer;
+          font-size: 15px;
+        ">← К списку заданий</button>
 
-        checkButton.addEventListener("click", checkAnswer);
+        <h3 id="studentTaskTitle"></h3>
 
-        answerInput.addEventListener("keydown", event => {
-            if (event.key === "Enter" && !isChecking) {
-                checkAnswer();
-            }
-        });
+        <img id="studentTaskImage" alt="Изображение задания" style="
+          display: none;
+          max-width: 100%;
+          max-height: 400px;
+          object-fit: contain;
+          border-radius: 10px;
+          margin: 10px auto;
+        ">
 
-        answerInput.focus();
+        <div style="margin-top: 18px;">
+          <label for="studentTaskAnswer" style="
+            display: block;
+            margin-bottom: 8px;
+          ">Ваш ответ:</label>
 
-        document.getElementById("studentTaskNext")
-            .addEventListener("click", () => {
-                currentIndex++;
-                showTask();
-            });
+          <input id="studentTaskAnswer" type="text" autocomplete="off" style="
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 2px solid #459ff5;
+            border-radius: 10px;
+            font-size: 18px;
+          ">
+        </div>
+
+        <button id="studentCheckAnswer" type="button" style="
+          width: 100%;
+          margin-top: 14px;
+          padding: 13px;
+          border: none;
+          border-radius: 10px;
+          background: #66ee94;
+          color: #03032f;
+          font-weight: bold;
+          font-size: 17px;
+          cursor: pointer;
+        ">Проверить ответ</button>
+
+        <div id="studentTaskMessage" style="
+          margin-top: 15px;
+          font-size: 17px;
+          font-weight: bold;
+          text-align: center;
+        "></div>
+
+        <button id="studentNextTask" type="button" style="
+          display: none;
+          width: 100%;
+          margin-top: 12px;
+          padding: 12px;
+          border: 1px solid #ffff00;
+          border-radius: 10px;
+          background: #345995;
+          color: #ffff00;
+          font-size: 16px;
+          cursor: pointer;
+        ">Вернуться к заданиям</button>
+
+      </div>
+
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // ==========================================
+  // ЭЛЕМЕНТЫ
+  // ==========================================
+
+  const tasksList = modal.querySelector("#studentTasksList");
+  const selectedTaskBlock = modal.querySelector("#studentSelectedTask");
+  const heading = modal.querySelector("#studentTasksHeading");
+
+  const closeButton = modal.querySelector("#studentTasksClose");
+  const backButton = modal.querySelector("#studentBackToList");
+
+  const taskTitle = modal.querySelector("#studentTaskTitle");
+  const taskImage = modal.querySelector("#studentTaskImage");
+
+  const answerInput = modal.querySelector("#studentTaskAnswer");
+  const checkButton = modal.querySelector("#studentCheckAnswer");
+  const message = modal.querySelector("#studentTaskMessage");
+  const nextButton = modal.querySelector("#studentNextTask");
+
+  let tasks = [];
+  let selectedTask = null;
+  let answerCorrect = false;
+
+  // ==========================================
+  // ОТКРЫТИЕ И ЗАКРЫТИЕ
+  // ==========================================
+
+  function openModal() {
+    modal.style.display = "flex";
+    showTasksList();
+    loadTasks();
+  }
+
+  function closeModal() {
+    modal.style.display = "none";
+  }
+
+  closeButton.addEventListener("click", closeModal);
+
+  modal.addEventListener("click", event => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && modal.style.display !== "none") {
+      closeModal();
+    }
+  });
+
+  // ==========================================
+  // СПИСОК ЗАДАНИЙ
+  // ==========================================
+
+  function showTasksList() {
+    heading.textContent = "📚 Задания";
+    tasksList.style.display = "block";
+    selectedTaskBlock.style.display = "none";
+  }
+
+  async function loadTasks() {
+    tasksList.innerHTML = `
+      <p style="text-align:center;">Загружаем задания...</p>
+    `;
+
+    try {
+      const result = await callRPC("student_list_tasks");
+
+      tasks = Array.isArray(result) ? result : [];
+
+      renderTasks();
+
+    } catch (error) {
+      tasksList.innerHTML = `
+        <p style="color:#ff7777;text-align:center;">
+          Не удалось загрузить задания.<br>
+          Попробуйте обновить страницу.
+        </p>
+      `;
+
+      console.error(error);
+    }
+  }
+
+  function renderTasks() {
+    tasksList.style.display = "block";
+    selectedTaskBlock.style.display = "none";
+
+    heading.textContent = "📚 Выберите задание";
+
+    if (!tasks.length) {
+      tasksList.innerHTML = `
+        <p style="text-align:center;">
+          Пока преподаватель не добавил задания.
+        </p>
+      `;
+      return;
     }
 
-    // ---------- ПРОВЕРКА ОТВЕТА ----------
+    tasksList.innerHTML = "";
 
-    async function checkAnswer() {
-        if (isChecking) return;
+    tasks.forEach((task, index) => {
+      const number = task.task_number ?? (index + 1);
 
-        const input = document.getElementById("studentTaskAnswer");
-        const checkButton = document.getElementById("studentTaskCheck");
-        const result = document.getElementById("studentTaskResult");
-        const nextButton = document.getElementById("studentTaskNext");
+      const card = document.createElement("button");
+      card.type = "button";
 
-        const answer = input.value.trim();
+      card.style.cssText = `
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        text-align: left;
+        margin-bottom: 12px;
+        padding: 16px;
+        border: 2px solid #459ff5;
+        border-radius: 12px;
+        background: #345995;
+        color: #ffff00;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+      `;
 
-        if (!answer) {
-            result.textContent = "Сначала введи ответ.";
-            result.style.color = "#d97706";
-            input.focus();
-            return;
-        }
+      card.innerHTML = `
+        <div>📝 Задание №${number}</div>
+        <div style="
+          font-size: 13px;
+          font-weight: normal;
+          margin-top: 6px;
+          color: #ffffff;
+        ">Нажмите, чтобы открыть</div>
+      `;
 
-        isChecking = true;
-        checkButton.disabled = true;
-        checkButton.textContent = "Проверяем...";
-        result.textContent = "";
+      card.addEventListener("click", () => {
+        openTask(task);
+      });
 
-        try {
-            const task = tasks[currentIndex];
+      tasksList.appendChild(card);
+    });
+  }
 
-            const response = await rpc("student_check_task_answer", {
-                p_task_number: Number(task.task_number),
-                p_answer: answer
-            });
+  // ==========================================
+  // ОТКРЫТИЕ ВЫБРАННОГО ЗАДАНИЯ
+  // ==========================================
 
-            const correct = parseCorrectResult(response);
+  function openTask(task) {
+    selectedTask = task;
+    answerCorrect = false;
 
-            if (correct === true) {
-                result.textContent = "✅ Правильно!";
-                result.style.color = "#16803c";
+    tasksList.style.display = "none";
+    selectedTaskBlock.style.display = "block";
 
-                input.disabled = true;
-                checkButton.style.display = "none";
-                nextButton.style.display = "inline-block";
+    heading.textContent = "📝 Задание";
 
-            } else if (correct === false) {
-                result.textContent = "❌ Неправильно. Попробуй ещё раз.";
-                result.style.color = "#d62828";
+    const number = task.task_number ?? "";
 
-                input.focus();
-                input.select();
+    taskTitle.textContent = `Задание №${number}`;
 
-            } else {
-                throw new Error(
-                    "Сервер вернул неожиданный результат проверки."
-                );
-            }
+    answerInput.value = "";
+    answerInput.disabled = false;
 
-        } catch (error) {
-            console.error(error);
+    checkButton.disabled = false;
+    checkButton.style.display = "block";
 
-            result.textContent =
-                "Не удалось проверить ответ. Попробуй ещё раз.";
+    message.textContent = "";
+    nextButton.style.display = "none";
 
-            result.style.color = "#d97706";
+    const imageUrl = getImageUrl(task);
 
-        } finally {
-            isChecking = false;
-
-            if (checkButton.style.display !== "none") {
-                checkButton.disabled = false;
-                checkButton.textContent = "Проверить ответ";
-            }
-        }
-    }
-
-    // Преобразуем разные форматы ответа Supabase в true/false
-    function parseCorrectResult(data) {
-        if (typeof data === "boolean") return data;
-
-        if (typeof data === "string") {
-            if (data === "true") return true;
-            if (data === "false") return false;
-
-            try {
-                data = JSON.parse(data);
-            } catch {
-                return null;
-            }
-        }
-
-        if (typeof data === "number") {
-            if (data === 1) return true;
-            if (data === 0) return false;
-        }
-
-        if (data && typeof data === "object") {
-            if (typeof data.correct === "boolean") {
-                return data.correct;
-            }
-
-            if (typeof data.is_correct === "boolean") {
-                return data.is_correct;
-            }
-
-            if (typeof data.success === "boolean") {
-                return data.success;
-            }
-        }
-
-        return null;
-    }
-
-    // ---------- ЗАВЕРШЕНИЕ ----------
-
-    function showCompletion() {
-        const content = document.getElementById("studentTasksContent");
-
-        content.innerHTML = `
-            <h2>🎉 Все задания выполнены!</h2>
-
-            <p>
-                Ты прошёл все ${tasks.length} заданий преподавателя.
-            </p>
-
-            <button class="studentTaskButton" id="studentTasksRestart">
-                Пройти ещё раз
-            </button>
-        `;
-
-        document.getElementById("studentTasksRestart")
-            .addEventListener("click", () => {
-                currentIndex = 0;
-                showTask();
-            });
-    }
-
-    // ---------- ЗАКРЫТИЕ ----------
-
-    function closeStudentTasks() {
-        document.getElementById("studentTasksOverlay").style.display = "none";
-    }
-
-    // ---------- ЗАЩИТА ТЕКСТА ----------
-
-    function escapeHTML(value) {
-        return String(value ?? "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
-    }
-
-    // ---------- ЗАПУСК ----------
-
-    function init() {
-        createInterface();
-    }
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", init);
+    if (imageUrl) {
+      taskImage.src = imageUrl;
+      taskImage.style.display = "block";
     } else {
-        init();
+      taskImage.removeAttribute("src");
+      taskImage.style.display = "none";
     }
+
+    answerInput.focus();
+  }
+
+  // ==========================================
+  // ПРОВЕРКА ОТВЕТА
+  // ==========================================
+
+  function isCorrectResult(result) {
+    if (result === true) return true;
+    if (result === false || result == null) return false;
+
+    if (typeof result === "string") {
+      const value = result.trim().toLowerCase();
+
+      if (value === "true" || value === "correct") return true;
+      if (value === "false" || value === "incorrect") return false;
+
+      try {
+        return isCorrectResult(JSON.parse(result));
+      } catch {
+        return false;
+      }
+    }
+
+    if (typeof result === "object") {
+      if ("correct" in result) return isCorrectResult(result.correct);
+      if ("is_correct" in result) return isCorrectResult(result.is_correct);
+      if ("success" in result) return isCorrectResult(result.success);
+      if ("result" in result) return isCorrectResult(result.result);
+    }
+
+    return false;
+  }
+
+  async function checkAnswer() {
+    if (!selectedTask || answerCorrect) return;
+
+    const answer = answerInput.value.trim();
+
+    if (!answer) {
+      message.textContent = "Введите ответ.";
+      message.style.color = "#ff7777";
+      return;
+    }
+
+    checkButton.disabled = true;
+    message.textContent = "Проверяем...";
+    message.style.color = "#ffff00";
+
+    try {
+      const result = await callRPC(
+        "student_check_task_answer",
+        {
+          p_task_number: Number(selectedTask.task_number),
+          p_answer: answer
+        }
+      );
+
+      if (isCorrectResult(result)) {
+        answerCorrect = true;
+
+        message.textContent = "✅ Правильно!";
+        message.style.color = "#66ee94";
+
+        answerInput.disabled = true;
+        checkButton.style.display = "none";
+        nextButton.style.display = "block";
+
+      } else {
+        message.textContent = "❌ Неверный ответ. Попробуйте ещё раз.";
+        message.style.color = "#ff7777";
+
+        checkButton.disabled = false;
+        answerInput.focus();
+      }
+
+    } catch (error) {
+      message.textContent = "Ошибка проверки. Попробуйте ещё раз.";
+      message.style.color = "#ff7777";
+
+      checkButton.disabled = false;
+      console.error(error);
+    }
+  }
+
+  checkButton.addEventListener("click", checkAnswer);
+
+  answerInput.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+      checkAnswer();
+    }
+  });
+
+  // ==========================================
+  // ВОЗВРАТ К СПИСКУ
+  // ==========================================
+
+  function backToTasks() {
+    selectedTask = null;
+    answerCorrect = false;
+    showTasksList();
+    renderTasks();
+  }
+
+  backButton.addEventListener("click", backToTasks);
+  nextButton.addEventListener("click", backToTasks);
+
+  // ==========================================
+  // ПОДКЛЮЧЕНИЕ КНОПКИ
+  // ==========================================
+
+  function connectButton() {
+    let button = findTasksButton();
+
+    if (!button) {
+      button = createTasksButton();
+    }
+
+    // Не подключаем обработчик повторно
+    if (button.dataset.studentTasksConnected === "true") {
+      return;
+    }
+
+    button.dataset.studentTasksConnected = "true";
+
+    button.addEventListener("click", openModal);
+  }
+
+  connectButton();
+
+  console.log("Ученические задания подключены.");
 
 })();

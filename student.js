@@ -62,11 +62,10 @@
   }
 
   // ==========================================
-  // КНОПКА "ЗАДАНИЯ"
+  // ПОИСК КНОПКИ "ЗАДАНИЯ"
   // ==========================================
 
   function findTasksButton() {
-    // Сначала проверяем известные варианты ID
     const possibleIds = [
       "studentTasksButton",
       "tasksButton",
@@ -80,14 +79,18 @@
       if (element) return element;
     }
 
-    // Ищем существующую кнопку по тексту
-    const buttons = Array.from(document.querySelectorAll("button"));
+    const buttons = Array.from(
+      document.querySelectorAll("button")
+    );
 
     return buttons.find(button => {
       const text = button.textContent.trim().toLowerCase();
-      return text === "задания" ||
-             text === "📚 задания" ||
-             text === "🎮 задания";
+
+      return (
+        text === "задания" ||
+        text === "📚 задания" ||
+        text === "🎮 задания"
+      );
     }) || null;
   }
 
@@ -114,11 +117,12 @@
     `;
 
     document.body.appendChild(button);
+
     return button;
   }
 
   // ==========================================
-  // СОЗДАНИЕ ОКНА
+  // СОЗДАНИЕ ОКНА УЧЕНИЧЕСКИХ ЗАДАНИЙ
   // ==========================================
 
   const modal = document.createElement("div");
@@ -553,18 +557,30 @@
       button = createTasksButton();
     }
 
-    // Не подключаем обработчик повторно
-    if (button.dataset.studentTasksConnected === "true") {
-      return;
-    }
+    // Создаём чистую копию кнопки без старых обработчиков.
+    const cleanButton = button.cloneNode(true);
+    button.replaceWith(cleanButton);
 
-    button.dataset.studentTasksConnected = "true";
+    cleanButton.dataset.studentTasksConnected = "true";
 
-    button.addEventListener("click", openModal);
+    // Перехватываем нажатие на кнопку раньше остальных обработчиков.
+    document.addEventListener("click", event => {
+      const clickedButton = event.target.closest(
+        "#studentTasksButton, #tasksButton, #tasks-btn, #student-tasks-button, #openTasksButton"
+      );
+
+      if (clickedButton !== cleanButton) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      openModal();
+    }, true);
   }
 
   connectButton();
 
-  alert("НОВАЯ ВЕРСИЯ STUDENT.JS ЗАГРУЖЕНА");
+  console.log("Ученические задания подключены.");
 
 })();
